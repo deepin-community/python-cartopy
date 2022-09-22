@@ -1,0 +1,302 @@
+python-cartopy (0.20.1+dfsg-1) unstable; urgency=medium
+
+  * Team upload.
+  * Update lintian overrides.
+  * Move from experimental to unstable.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 22 Oct 2021 07:57:18 +0200
+
+python-cartopy (0.20.1+dfsg-1~exp1) experimental; urgency=medium
+
+  * Team upload.
+  * New upstream release.
+  * Refresh patches.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sat, 09 Oct 2021 07:48:09 +0200
+
+python-cartopy (0.20.0+dfsg-1~exp1) experimental; urgency=medium
+
+  * Team upload.
+  * New upstream release.
+    (closes: #983222)
+  * Bump Standards-Version to 4.6.0, no changes.
+  * Bump debhelper compat to 12, no changes.
+  * Update (build) dependencies.
+  * Refresh patches.
+  * Add patch to ignore test failures when pyproj is built with PROJ < 8.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sat, 18 Sep 2021 07:18:51 +0200
+
+python-cartopy (0.19.0+dfsg-2) unstable; urgency=medium
+
+  * Team upload.
+  * Add patch to fix test failure with GEOS 3.9.1.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Mon, 16 Aug 2021 21:17:31 +0200
+
+python-cartopy (0.19.0+dfsg-1) unstable; urgency=medium
+
+  * Team upload.
+  * Update watch file to ignore .postN releases.
+  * Move from experimental to unstable.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sun, 15 Aug 2021 16:45:05 +0200
+
+python-cartopy (0.19.0+dfsg-1~exp1) experimental; urgency=medium
+
+  * Team upload.
+  * New upstream release.
+  * Update watch file for GitHub URL changes.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Thu, 22 Apr 2021 05:52:31 +0200
+
+python-cartopy (0.19.0~rc1+dfsg-1~exp1) experimental; urgency=medium
+
+  * Team upload.
+  * New upstream release candidate.
+  * Bump Standards-Version to 4.5.1, no changes.
+  * Update copyright file.
+  * Update build dependencies.
+  * Refresh patches.
+  * Add script to generate _version.py, see:
+    https://github.com/SciTools/cartopy/issues/1746
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sat, 13 Mar 2021 07:29:39 +0100
+
+python-cartopy (0.18.0+dfsg-2) unstable; urgency=medium
+
+  * Team upload.
+  * Fix autopkgtest control file.
+    (closes: #970966)
+  * Update lintian overrides.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Thu, 12 Nov 2020 11:48:04 +0100
+
+python-cartopy (0.18.0+dfsg-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release.
+  * Move from experimental to unstable.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Mon, 04 May 2020 05:51:43 +0200
+
+python-cartopy (0.18.0~rc1+dfsg-1~exp1) experimental; urgency=medium
+
+  * Team upload.
+  * New upstream release candidate.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Mon, 27 Apr 2020 10:35:25 +0200
+
+python-cartopy (0.18.0~b2+dfsg-1~exp1) experimental; urgency=medium
+
+  * Team upload.
+  * New upstream beta release.
+  * Drop no-network.patch, applied upstream. Refresh remaining patches.
+  * Update copyright file.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Mon, 13 Apr 2020 15:15:53 +0200
+
+python-cartopy (0.18.0~b1+dfsg-1~exp2) experimental; urgency=medium
+
+  * Team upload.
+  * Add patch to fix FTBFS due to test failures.
+    (closes: #951767)
+
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 21 Feb 2020 15:27:07 +0100
+
+python-cartopy (0.18.0~b1+dfsg-1~exp1) experimental; urgency=medium
+
+  * Team upload.
+  * New upstream beta release.
+  * Update watch file for pre-releases.
+  * Update copyright years for Met Office.
+  * Drop patches applied upstream. Refresh remaining patches.
+  * Add patch to mark additional tests that require network.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Tue, 11 Feb 2020 09:52:49 +0100
+
+python-cartopy (0.17.0+dfsg-9) unstable; urgency=medium
+
+  * Team upload.
+  * Add patch to fix FTBFS due to test failures.
+    (closes: #951767)
+
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 21 Feb 2020 15:50:38 +0100
+
+python-cartopy (0.17.0+dfsg-8) unstable; urgency=medium
+
+  * Team upload.
+  * Drop Name field from upstream metadata.
+  * Bump Standards-Version to 4.5.0, no changes.
+  * Add upstream patch to fix test failures with newer Matplotlib.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Wed, 29 Jan 2020 10:38:43 +0100
+
+python-cartopy (0.17.0+dfsg-7) unstable; urgency=medium
+
+  * Team upload.
+  * Bump Standards-Version to 4.4.1, no changes.
+  * Drop Provides: ${python3:Provides}.
+  * Ignore test failures on s390x & ppc64 like shapely.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Wed, 20 Nov 2019 17:03:55 +0100
+
+python-cartopy (0.17.0+dfsg-6) unstable; urgency=medium
+
+  * Remove Python 2 from debian/tests.
+
+ -- Antonio Valentino <antonio.valentino@tiscali.it>  Wed, 24 Jul 2019 05:45:17 +0000
+
+python-cartopy (0.17.0+dfsg-5) unstable; urgency=medium
+
+  [ Antonio Valentino ]
+  * Drop Python 2 support.
+  * Set compat to 12.
+  * Remove unnecessary greater-than versioned dependency from
+    python3-six
+  * debian/rules:
+    - improved clean rule
+
+  [ Bas Couwenberg ]
+  * Add ${python3:Provides} to arch: any packages.
+
+ -- Antonio Valentino <antonio.valentino@tiscali.it>  Sun, 21 Jul 2019 15:02:58 +0000
+
+python-cartopy (0.17.0+dfsg-4) unstable; urgency=medium
+
+  * Team upload.
+
+  [ Antonio Valentino ]
+  * Link examples into the doc directory.
+  * debian/patches:
+    - refresh and renumber all patches.
+  * Improve autopkgtest scripts.
+
+  [ Bas Couwenberg ]
+  * Sort & align links.
+  * Remove package name from lintian overrides.
+  * Define ACCEPT_USE_OF_DEPRECATED_PROJ_API_H for PROJ 6.0.0 compatibility.
+  * Update dh_install override to use --list-missing.
+  * Update gbp.conf to use --source-only-changes by default.
+  * Bump Standards-Version to 4.4.0, no changes.
+  * Enable pie hardening flags.
+  * Add patch to skip tests that fail with PROJ 6.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 12 Jul 2019 12:35:21 +0200
+
+python-cartopy (0.17.0+dfsg-3) unstable; urgency=medium
+
+  * Team upload.
+  * Bump Standards-Version to 4.3.0, no changes.
+  * Don't install subdirectories twice.
+    (closes: #921886)
+  * Fix symlinks to python-cartopy-data provided directories.
+    (closes: #921887)
+  * Don't include test output in binary packages.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sun, 10 Feb 2019 08:45:15 +0100
+
+python-cartopy (0.17.0+dfsg-2) unstable; urgency=medium
+
+  * Team upload.
+  * Update patch to use xfail for tests failing on i386.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sun, 18 Nov 2018 17:06:14 +0100
+
+python-cartopy (0.17.0+dfsg-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release.
+  * Bump Standards-Version to 4.2.1, no changes.
+  * Add filelock, fiona & pykdtree (build) dependencies.
+  * Add license & copyright for pre_sphinx_gallery.py.
+  * Use pytest markers to skip certain tests.
+  * Refresh i386 patch.
+  * Drop proj 5 patches, fixed upstream.
+  * Add python{,3}-{pil,scipy,tk} build dependencies for tests.
+  * Use xvfb to run dh_auto_test for Tk tests.
+  * Add patch to mark additional tests as requiring network.
+  * Remove executable bit from lock files.
+  * Remove Multi-Arch fields due to pycompile in postinst.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sun, 18 Nov 2018 11:43:11 +0100
+
+python-cartopy (0.16.0+dfsg1-3) unstable; urgency=medium
+
+  * Team upload.
+  * Bump Standards-Version to 4.2.0, no changes.
+  * Update watch file to use releases instead of tags.
+  * Update watch file to limit matches to archive path.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sat, 18 Aug 2018 18:52:45 +0200
+
+python-cartopy (0.16.0+dfsg1-2) unstable; urgency=medium
+
+  * Team upload.
+  * Bump Standards-Version to 4.1.5, no changes.
+  * Remove documentation outside usr/share/doc.
+  * Sort targets in rules file.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Wed, 11 Jul 2018 14:10:38 +0200
+
+python-cartopy (0.16.0+dfsg1-1) unstable; urgency=medium
+
+  [ Antonio Valentino ]
+  * New upstream release (Closes: #854167).
+  * Update copyright file.
+  * Set compat to 11.
+  * New python-cartopy-data package for common data files.
+  * Standard version bump to 4.1.4:
+    - remove get-orig-source target from debian/rules
+  * debian/control
+    - update maintainer field (python-cartopy is now maintained by the
+      debian-gis team)
+    - updated Vcs-* fields
+    - update dependency list
+    - drop ancient X-Python3-Version field
+    - add Antonio Valentino to uploaders
+  * debian/tests/control
+    - switch to pytest
+  * debian/patches
+    - refresh and renumber all patches
+    - new patches to improve compatibility with proj v5
+      (Closes: #889931). See also
+      https://github.com/OSGeo/proj.4/issues/985,
+      https://github.com/OSGeo/proj.4/issues/941 and
+      https://github.com/SciTools/cartopy/issues/1071)
+  * debian/rules
+    - switch to pytst
+
+  [ Bas Couwenberg ]
+  * Update Repository URL to use HTTPS in upstream metadata.
+  * Update Homepage URL to use HTTPS.
+  * Reorder dependencies.
+  * Capitalize first letter in short description.
+  * Update watch file to handle common issues.
+  * Update copyright file, changes:
+    - Use standalone license paragraphs
+    - Fix PSF license terms (Python-2.0)
+    - Use standard public-domain license shortname
+  * Update gbp.conf conform the Debian GIS Policy.
+  * Refresh patches.
+  * Align paths in install and link files.
+
+ -- Antonio Valentino <antonio.valentino@tiscali.it>  Fri, 08 Jun 2018 20:18:37 +0000
+
+python-cartopy (0.14.2+dfsg1-2) unstable; urgency=medium
+
+  [ Andreas Tille ]
+  * Do not force the package maintainer to install build-dependencies like
+    geos on local machine
+
+  [ Ghislain Antony Vaillant ]
+  * Fix FTBFS on 32-bit architectures (Closes: #848634)
+    New patch 0001-Skip-tests-failing-on-i386-architectures.patch
+
+ -- Ghislain Antony Vaillant <ghisvail@gmail.com>  Thu, 02 Feb 2017 17:51:42 +0000
+
+python-cartopy (0.14.2+dfsg1-1) unstable; urgency=low
+
+  * Initial release. (Closes: #730670)
+
+ -- Ghislain Antony Vaillant <ghisvail@gmail.com>  Wed, 14 Dec 2016 15:59:08 +0000

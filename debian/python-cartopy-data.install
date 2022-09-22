@@ -1,0 +1,3 @@
+lib/cartopy/data/raster               usr/share/cartopy/data/
+lib/cartopy/data/shapefiles           usr/share/cartopy/data/
+lib/cartopy/tests/mpl/baseline_images usr/share/cartopy/tests/mpl/

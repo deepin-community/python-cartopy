@@ -1,0 +1,58 @@
+From: Ghislain Antony Vaillant <ghisvail@gmail.com>
+Date: Sat, 14 Jan 2017 10:26:34 +0000
+Subject: Skip tests failing on i386 architectures
+Forwarded: not-needed
+
+---
+ lib/cartopy/tests/crs/test_lambert_azimuthal_equal_area.py | 3 +++
+ lib/cartopy/tests/mpl/test_features.py                     | 3 +++
+ lib/cartopy/tests/mpl/test_images.py                       | 3 +++
+ 3 files changed, 9 insertions(+)
+
+--- a/lib/cartopy/tests/crs/test_lambert_azimuthal_equal_area.py
++++ b/lib/cartopy/tests/crs/test_lambert_azimuthal_equal_area.py
+@@ -7,12 +7,15 @@
+ import numpy as np
+ from numpy.testing import assert_almost_equal
+ import pytest
++import sysconfig
+ 
+ import cartopy.crs as ccrs
+ from .helpers import check_proj_params
+ 
+ 
+ class TestLambertAzimuthalEqualArea:
++    @pytest.mark.xfail('i386' in sysconfig.get_config_var('MULTIARCH'),
++                       reason='Limitations of i386 architecture')
+     def test_default(self):
+         crs = ccrs.LambertAzimuthalEqualArea()
+         other_args = {'ellps=WGS84', 'lon_0=0.0', 'lat_0=0.0', 'x_0=0.0',
+--- a/lib/cartopy/tests/mpl/test_features.py
++++ b/lib/cartopy/tests/mpl/test_features.py
+@@ -6,6 +6,7 @@
+ 
+ import matplotlib.pyplot as plt
+ import pytest
++import sysconfig
+ 
+ import cartopy.crs as ccrs
+ import cartopy.feature as cfeature
+@@ -42,6 +43,8 @@ def test_natural_earth_custom():
+     ax.set_ylim((58, 72))
+ 
+ 
++@pytest.mark.xfail('i386' in sysconfig.get_config_var('MULTIARCH'),
++                   reason='Limitations of i386 architecture')
+ @ImageTesting(['gshhs_coastlines'], tolerance=0.95)
+ def test_gshhs():
+     ax = plt.axes(projection=ccrs.Mollweide())
+--- a/lib/cartopy/tests/mpl/test_images.py
++++ b/lib/cartopy/tests/mpl/test_images.py
+@@ -5,6 +5,7 @@
+ # licensing details.
+ 
+ import os
++import sysconfig
+ import types
+ 
+ import numpy as np

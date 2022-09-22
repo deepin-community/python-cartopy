@@ -1,0 +1,79 @@
+Source: python-cartopy
+Maintainer: Debian GIS Project <pkg-grass-devel@lists.alioth.debian.org>
+Uploaders: Ghislain Antony Vaillant <ghisvail@gmail.com>,
+           Antonio Valentino <antonio.valentino@tiscali.it>
+Section: python
+Priority: optional
+Build-Depends: cython3,
+               debhelper-compat (= 12),
+               dh-python,
+               libgeos-dev,
+               libproj-dev (>= 8.0.0),
+               proj-bin (>= 8.0.0),
+               python3-all-dev,
+               python3-fiona,
+               python3-flufl.lock,
+               python3-matplotlib,
+               python3-numpy,
+               python3-packaging,
+               python3-pil,
+               python3-pykdtree,
+               python3-pyproj (>= 3.0.0),
+               python3-pyshp,
+               python3-pytest,
+               python3-scipy,
+               python3-setuptools,
+               python3-shapely (>= 1.6.4),
+               python3-tk,
+               xauth,
+               xvfb
+Standards-Version: 4.6.0
+Vcs-Browser: https://salsa.debian.org/debian-gis-team/python-cartopy
+Vcs-Git: https://salsa.debian.org/debian-gis-team/python-cartopy.git
+Homepage: https://scitools.org.uk/cartopy/
+
+Package: python3-cartopy
+Architecture: any
+Depends: python-cartopy-data (= ${source:Version}),
+         ${shlibs:Depends},
+         ${python3:Depends},
+         ${misc:Depends}
+Suggests: python3-fiona,
+          python3-gdal,
+          python3-matplotlib,
+          python3-owslib,
+          python3-pil,
+          python3-pykdtree,
+          python3-scipy
+Description: Cartographic library for Python 3
+ Cartopy is a Python package designed to make drawing maps for data analysis
+ and visualisation easy.
+ .
+ It features:
+ .
+   - object oriented projection definitions
+   - point, line, polygon and image transformations between projections
+   - integration to expose advanced mapping in matplotlib with a simple and
+     intuitive interface
+   - powerful vector data handling by integrating shapefile reading with
+     Shapely capabilities
+ .
+ This package provides the Python 3 library.
+
+Package: python-cartopy-data
+Architecture: all
+Depends: ${misc:Depends}
+Description: cartographic library for Python (package data)
+ Cartopy is a Python package designed to make drawing maps for data analysis
+ and visualisation easy.
+ .
+ It features:
+ .
+   - object oriented projection definitions
+   - point, line, polygon and image transformations between projections
+   - integration to expose advanced mapping in matplotlib with a simple and
+     intuitive interface
+   - powerful vector data handling by integrating shapefile reading with
+     Shapely capabilities
+ .
+ This package provides common data files necessary to the library.

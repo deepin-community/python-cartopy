@@ -1,0 +1,10 @@
+#!/bin/sh
+set -efu
+
+PYS=${PYS:-"$(py3versions -r 2>/dev/null)"}
+
+
+for py in $PYS; do
+    echo "=== $py ==="
+    $py -m pytest --pyargs cartopy.tests.crs cartopy.tests.test_crs cartopy.tests.test_geodesic
+done

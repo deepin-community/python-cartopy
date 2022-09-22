@@ -1,0 +1,51 @@
+Description: Also skip tests with GEOS 3.9.1+.
+Author: Bas Couwenberg <sebastic@debian.org>
+Forwarded: not-needed
+
+--- a/lib/cartopy/tests/mpl/test_gridliner.py
++++ b/lib/cartopy/tests/mpl/test_gridliner.py
+@@ -134,7 +134,7 @@ grid_label_inline_image = 'gridliner_lab
+ grid_label_inline_usa_image = 'gridliner_labels_inline_usa'
+ 
+ 
+-@pytest.mark.skipif(geos_version == (3, 9, 0), reason="GEOS intersection bug")
++@pytest.mark.skipif(geos_version >= (3, 9, 0), reason="GEOS intersection bug")
+ @pytest.mark.natural_earth
+ @ImageTesting([grid_label_image], tolerance=grid_label_tol)
+ def test_grid_labels():
+@@ -208,7 +208,7 @@ def test_grid_labels():
+     plt.subplots_adjust(wspace=0.25, hspace=0.25)
+ 
+ 
+-@pytest.mark.skipif(geos_version == (3, 9, 0), reason="GEOS intersection bug")
++@pytest.mark.skipif(geos_version >= (3, 9, 0), reason="GEOS intersection bug")
+ @pytest.mark.natural_earth
+ @ImageTesting(['gridliner_labels_tight'], tolerance=4)
+ def test_grid_labels_tight():
+@@ -249,7 +249,7 @@ def test_grid_labels_tight():
+             assert hasattr(gl, '_drawn') and gl._drawn
+ 
+ 
+-@pytest.mark.skipif(geos_version == (3, 9, 0), reason="GEOS intersection bug")
++@pytest.mark.skipif(geos_version >= (3, 9, 0), reason="GEOS intersection bug")
+ @pytest.mark.natural_earth
+ @ImageTesting([grid_label_inline_image], tolerance=grid_label_inline_tol)
+ def test_grid_labels_inline():
+@@ -266,7 +266,7 @@ def test_grid_labels_inline():
+     plt.subplots_adjust(wspace=0.35, hspace=0.35)
+ 
+ 
+-@pytest.mark.skipif(geos_version == (3, 9, 0), reason="GEOS intersection bug")
++@pytest.mark.skipif(geos_version >= (3, 9, 0), reason="GEOS intersection bug")
+ @pytest.mark.natural_earth
+ @ImageTesting([grid_label_inline_usa_image],
+               tolerance=grid_label_inline_usa_tol)
+@@ -294,7 +294,7 @@ def test_grid_labels_inline_usa():
+     plt.subplots_adjust(wspace=0.35, hspace=0.35)
+ 
+ 
+-@pytest.mark.skipif(geos_version == (3, 9, 0), reason="GEOS intersection bug")
++@pytest.mark.skipif(geos_version >= (3, 9, 0), reason="GEOS intersection bug")
+ @ImageTesting(["gridliner_labels_bbox_style"], tolerance=grid_label_tol)
+ def test_gridliner_labels_bbox_style():
+     top = 49.3457868  # north lat

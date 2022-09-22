@@ -1,0 +1,24 @@
+#
+# .coveragerc to control coverage.py
+#
+
+[run]
+branch = True
+omit = 
+    lib/cartopy/examples/*
+    lib/cartopy/sphinxext/*
+    lib/cartopy/tests/*
+    lib/cartopy/_version.py
+    *.pxd
+plugins = Cython.Coverage
+
+[paths]
+source =
+    lib/cartopy
+    /home/travis/miniconda/envs/test-environment/lib/python?.?/site-packages/cartopy
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    if __name__ == .__main__.:

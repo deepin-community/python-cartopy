@@ -1,0 +1,4 @@
+lib/Cartopy.egg-info/SOURCES.txt
+lib/cartopy/_crs.c
+lib/cartopy/geodesic/_geodesic.c
+lib/cartopy/trace.cpp

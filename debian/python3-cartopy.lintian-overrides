@@ -1,0 +1,3 @@
+# the python-cartopy-data package only contains common data
+python-package-depends-on-package-from-other-python-variant Depends: python-cartopy-data
+

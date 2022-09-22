@@ -1,0 +1,4 @@
+0001-Skip-tests-failing-on-i386-architectures.patch
+test_robinson.patch
+test_gridliner.patch
+test_crs.patch
