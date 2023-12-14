@@ -11,7 +11,7 @@ Comment: The upstream release is repacked in order to exclude the non-free
 Files-Excluded: lib/cartopy/data/netcdf/*
 
 Files: *
-Copyright:            Cartopy Contributors
+Copyright: 2018-2021, Cartopy Contributors
            2010-2020, Met Office
            2011-2018, British Crown
 License: LGPL-3+
@@ -48,6 +48,7 @@ License: LGPL-3+
 
 Files: debian/*
 Copyright: 2016, Ghislain Antony Vaillant <ghisvail@gmail.com>
+      2018-2021, Antonio Valentino <antoniuo.valentino@tiscali.it>
 License: LGPL-3+
 
 License: LGPL-3+
