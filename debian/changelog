@@ -1,3 +1,126 @@
+python-cartopy (0.22.0+dfsg-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release.
+  * Drop geos & proj from build dependencies.
+  * Refresh patches.
+  * Specify path in PYBUILD_TEST_ARGS to fix test failure,
+    because pybuild does not preserve directory structure.
+  * Fix cartopy_feature_download installation.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sat, 05 Aug 2023 08:44:56 +0200
+
+python-cartopy (0.21.1+dfsg-2) unstable; urgency=medium
+
+  * Team upload.
+  * Enable numpy3 dh helper.
+  * Bump Standards-Version to 4.6.2, no changes.
+  * Drop broken symlink to examples.
+    (closes: #1036597)
+  * Bump debhelper compat to 13.
+  * Add patch to fix FTBFS with PROJ 9.2.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Tue, 13 Jun 2023 21:03:35 +0200
+
+python-cartopy (0.21.1+dfsg-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Tue, 13 Dec 2022 09:18:35 +0100
+
+python-cartopy (0.21.0+dfsg-4) unstable; urgency=medium
+
+  * Team upload.
+  * Add -v to pytest arguments.
+  * Use patch to not set RPATH in libraries.
+  * Don't use xvfb-run for tests, causes FTBFS.
+  * Sync tests between autopkgtest & build.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Thu, 01 Dec 2022 21:35:01 +0100
+
+python-cartopy (0.21.0+dfsg-3) unstable; urgency=medium
+
+  * Team upload.
+  * Drop obsolete workaround for proj_api.h deprecation.
+  * Use pybuild-plugin-pyproject instead of python3-setuptools.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Thu, 01 Dec 2022 15:34:24 +0100
+
+python-cartopy (0.21.0+dfsg-2) unstable; urgency=medium
+
+  * Team upload.
+  * Enable Salsa CI.
+  * Add python3-pytest-mpl to tests control.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sat, 10 Sep 2022 20:07:04 +0200
+
+python-cartopy (0.21.0+dfsg-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release.
+  * Update build dependencies:
+    - Drop python3-flufl.lock
+    - Add python3-pytest-mpl
+  * Refresh patches.
+  * Export SETUPTOOLS_SCM_PRETEND_VERSION, don't generate version file.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sat, 10 Sep 2022 06:59:37 +0200
+
+python-cartopy (0.20.3+dfsg-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release.
+  * Bump Standards-Version to 4.6.1, no changes.
+  * Drop proj-9.0.1.patch, fixed upstream.
+  * Update lintian overrides.
+  * Use supported python3 versions in autopkgtest.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Wed, 29 Jun 2022 05:27:34 +0200
+
+python-cartopy (0.20.2+dfsg-2) unstable; urgency=medium
+
+  * Team upload.
+  * Add patch to set setup() version for .egg-info.
+  * Add patch to fix FTBFS with PROJ 9.0.1.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Wed, 15 Jun 2022 16:23:59 +0200
+
+python-cartopy (0.20.2+dfsg-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release.
+  * Refresh patches.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Thu, 13 Jan 2022 05:53:55 +0100
+
+python-cartopy (0.20.1+dfsg-2) unstable; urgency=medium
+
+  * Team upload.
+
+  [ Bas Couwenberg ]
+  * Drop test_crs.patch, no longer required.
+  * Add python3-all to test depends.
+    (closes: #999101)
+  * Also ignore test failures on mips64el.
+  * Explicitly use Agg matplotlib backend.
+
+  [ Antonio Valentino ]
+  * Update d/copyright file.
+  * debian/control:
+    - add Rules-Requires-Root: no
+    - remove unnecessary greater-than versioned dependency from python3-shapely.
+  * debian/python3-cartopy.lintian-overrides:
+    - add item for application-in-library-section
+    - add item for library-package-name-for-application
+    - add item for no-manual-page usr/bin/cartopy_feature_download.py.
+  * debian/rules:
+    - rename scripts in usr/bin to remove the language extension.
+  * debian/patches:
+    - refresh and renumber all patches
+
+ -- Bas Couwenberg <sebastic@debian.org>  Tue, 07 Dec 2021 14:19:15 +0100
+
 python-cartopy (0.20.1+dfsg-1) unstable; urgency=medium
 
   * Team upload.

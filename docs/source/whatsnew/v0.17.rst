@@ -38,7 +38,7 @@ Features
 
 * Greg Lucas contributed functionality to plot day/night across the globe,
   which was turned into a map feature by Phil Elson. The shading can be added
-  to a map with :data:`cartopy.feature.nightshade.Nightshade(datetime)`. For
+  to a map with :meth:`cartopy.feature.nightshade.Nightshade(datetime) <cartopy.feature.nightshade.Nightshade>`. For
   more information, see the
   :ref:`sphx_glr_gallery_lines_and_polygons_nightshade.py` example.
   (:pull:`1135`, :pull:`1181`)
@@ -142,11 +142,11 @@ Features
 
 Deprecations
 ------------
-* :func:`cartopy.mpl.clip_path.clip_path` has been deprecated. It is a simple
+* ``cartopy.mpl.clip_path.clip_path`` has been deprecated. It is a simple
   wrapper for Matplotlib's path clipping, so use that instead. You can replace
   ``clip_path(subject, clip_bbox)`` by ``subject.clip_to_bbox(clip_bbox)``.
 
-* :class:`cartopy.io.img_tiles.StamenTerrain` has been deprecated. Use
+* ``cartopy.io.img_tiles.StamenTerrain`` has been deprecated. Use
   ``Stamen('terrain-background')`` instead.
 
 * In CartoPy 0.18, the default value for the ``origin`` argument to

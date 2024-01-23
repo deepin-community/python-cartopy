@@ -1,4 +1,4 @@
 0001-Skip-tests-failing-on-i386-architectures.patch
-test_robinson.patch
-test_gridliner.patch
-test_crs.patch
+0002-test_robinson.patch
+0003-test_gridliner.patch
+cartopy_feature_download.patch
