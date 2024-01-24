@@ -1,3 +1,3 @@
-Depends: python3-cartopy, python3-pytest
+Depends: python3-all, python3-cartopy, python3-pytest, python3-pytest-mpl
 Tests: python3
 Restrictions: allow-stderr
