@@ -5,8 +5,13 @@
 
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
-# Workaround for proj_api.h deprecation in PROJ 6.0.0
-export DEB_CFLAGS_MAINT_APPEND=-DACCEPT_USE_OF_DEPRECATED_PROJ_API_H
+include /usr/share/dpkg/pkg-info.mk
+
+UPSTREAM_VERSION = $(shell echo $(DEB_VERSION_UPSTREAM) | sed -e 's/\+.*//')
+
+export SETUPTOOLS_SCM_PRETEND_VERSION = $(UPSTREAM_VERSION)
+
+export MPLBACKEND=Agg
 
 export PYBUILD_NAME = cartopy
 export PYBUILD_INSTALL_ARGS = --install-data=/usr/share/cartopy
@@ -15,10 +20,10 @@ export PYBUILD_TEST_PYTEST = 1
 # See: https://github.com/SciTools/cartopy/issues/797.
 # Testing of the plot feature (cartopy/tests/mpl/*) is disabled due to a bug in
 # the matplotlib Debian package. See Bug-Debian #838301.
-export PYBUILD_TEST_ARGS = --pyargs -m "not network and not natural_earth"
+export PYBUILD_TEST_ARGS = --pyargs -v -m "not network and not natural_earth" cartopy/
 
 %:
-	dh $@ --with python3 --buildsystem=pybuild
+	dh $@ --with python3,numpy3 --buildsystem=pybuild
 
 override_dh_clean:
 	dh_clean $(CURDIR)/lib/cartopy/_version.py
@@ -28,17 +33,12 @@ override_dh_auto_clean:
 	$(RM) -r .pybuild
 	$(RM) -r __pycache__
 
-override_dh_auto_configure:
-	python3 $(CURDIR)/debian/version.py
-
-	dh_auto_configure
-
 override_dh_auto_test:
 ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
-ifneq (,$(filter $(DEB_BUILD_ARCH),s390x ppc64))
-	xvfb-run -a -n 1 -s "-screen 0 1280x1024x24 -dpi 96" dh_auto_test || echo "Ignoring test failures"
+ifneq (,$(filter $(DEB_BUILD_ARCH),mips64el s390x ppc64))
+	dh_auto_test || echo "Ignoring test failures"
 else
-	xvfb-run -a -n 1 -s "-screen 0 1280x1024x24 -dpi 96" dh_auto_test
+	dh_auto_test
 endif
 endif
 
@@ -48,15 +48,18 @@ override_dh_auto_install:
 	$(RM) -r debian/python3-cartopy/usr/lib/python3*/dist-packages/cartopy/data
 	$(RM) -r debian/python3-cartopy/usr/lib/python3*/dist-packages/cartopy/tests/mpl/baseline_images
 
-override_dh_install:
-	dh_install
-
 	# Remove documentation outside usr/share/doc
 	$(RM) debian/*/usr/share/cartopy/data/shapefiles/gshhs/README.TXT
+
+	# Remove extra license files
+	$(RM) debian/*/usr/lib/python*/dist-packages/*/COPYING
+	$(RM) debian/*/usr/lib/python*/dist-packages/*/COPYING.LESSER
 
 	# Don't include test output
 	$(RM) -r debian/*/usr/lib/python*/dist-packages/cartopy_test_output
 
 override_dh_python3:
-	dh_python3
-	dh_numpy3
+	dh_python3 -p python3-cartopy
+
+override_dh_numpy3:
+	dh_numpy3 -p python3-cartopy

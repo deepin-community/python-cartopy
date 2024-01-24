@@ -1,0 +1,15 @@
+Description: Don't use generic feature_download executable name.
+Author: Bas Couwenberg <sebastic@debian.org>
+Forwarded: https://github.com/SciTools/cartopy/issues/2227
+
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -56,7 +56,7 @@ plotting = ["pillow>=6.1.0", "scipy>=1.3
+ test = ["pytest>=5.1.2", "pytest-mpl>=0.11", "pytest-xdist", "pytest-cov", "coveralls"]
+ 
+ [project.scripts]
+-feature_download = "tools.cartopy_feature_download.py:__main__"
++cartopy_feature_download = "tools.cartopy_feature_download.py:__main__"
+ 
+ [project.urls]
+ documentation='https://scitools.org.uk/cartopy/docs/latest/'

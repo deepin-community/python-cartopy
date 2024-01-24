@@ -15,14 +15,14 @@ database of Earth prior to the release of the ASTER GDEM in 2009.
 """
 
 import io
-import os
+from pathlib import Path
 import warnings
 
 import numpy as np
 
 from cartopy import config
 import cartopy.crs as ccrs
-from cartopy.io import fh_getter, Downloader, RasterSource, LocatedImage
+from cartopy.io import Downloader, LocatedImage, RasterSource, fh_getter
 
 
 class _SRTMSource(RasterSource):
@@ -31,6 +31,7 @@ class _SRTMSource(RasterSource):
     interface <raster-source-interface>`.
 
     """
+
     def __init__(self, resolution, downloader, max_nx, max_ny):
         """
         Parameters
@@ -172,6 +173,7 @@ class SRTM3Source(_SRTMSource):
     interface <raster-source-interface>`.
 
     """
+
     def __init__(self, downloader=None, max_nx=3, max_ny=3):
         """
         Parameters
@@ -199,6 +201,7 @@ class SRTM1Source(_SRTMSource):
     interface <raster-source-interface>`.
 
     """
+
     def __init__(self, downloader=None, max_nx=3, max_ny=3):
         """
         Parameters
@@ -220,18 +223,6 @@ class SRTM1Source(_SRTMSource):
                          max_nx=max_nx, max_ny=max_ny)
 
 
-def srtm(lon, lat):
-    """
-    Return (elevation, crs, extent) for the given longitude latitude.
-    Elevation is in meters.
-    """
-    warnings.warn("This method has been deprecated. "
-                  "See the \"What's new\" section for v0.12.",
-                  DeprecationWarning,
-                  stacklevel=2)
-    return SRTM3Source().single_tile(lon, lat)
-
-
 def add_shading(elevation, azimuth, altitude):
     """Add shading to SRTM elevation data, using azimuth and altitude
     of the sun.
@@ -250,62 +241,13 @@ def add_shading(elevation, azimuth, altitude):
     azimuth = np.deg2rad(azimuth)
     altitude = np.deg2rad(altitude)
     x, y = np.gradient(elevation)
-    slope = np.pi/2. - np.arctan(np.sqrt(x*x + y*y))
+    slope = np.pi / 2 - np.arctan(np.sqrt(x * x + y * y))
     # -x here because of pixel orders in the SRTM tile
     aspect = np.arctan2(-x, y)
-    shaded = np.sin(altitude) * np.sin(slope)\
-        + np.cos(altitude) * np.cos(slope)\
-        * np.cos((azimuth - np.pi/2.) - aspect)
+    shaded = np.sin(altitude) * np.sin(slope) \
+        + np.cos(altitude) * np.cos(slope) \
+        * np.cos((azimuth - np.pi / 2) - aspect)
     return shaded
-
-
-def fill_gaps(elevation, max_distance=10):
-    """Fill gaps in SRTM elevation data for which the distance from
-    missing pixel to nearest existing one is smaller than `max_distance`.
-
-    This function requires osgeo/gdal to work.
-
-    Parameters
-    ----------
-    elevation
-        SRTM elevation data (in meters)
-    max_distance
-        Maximal distance (in pixels) between a missing point
-        and the nearest valid one.
-
-    Returns
-    -------
-    elevation
-        SRTM elevation data with filled gaps.
-
-    """
-    warnings.warn("The fill_gaps function has been deprecated. "
-                  "See the \"What's new\" section for v0.14.",
-                  DeprecationWarning,
-                  stacklevel=2)
-    # Lazily import osgeo - it is only an optional dependency for cartopy.
-    from osgeo import gdal
-    from osgeo import gdal_array
-
-    src_ds = gdal_array.OpenArray(elevation)
-    srcband = src_ds.GetRasterBand(1)
-    dstband = srcband
-    maskband = srcband
-    smoothing_iterations = 0
-    options = []
-    gdal.FillNodata(dstband, maskband,
-                    max_distance, smoothing_iterations, options,
-                    callback=None)
-    elevation = dstband.ReadAsArray()
-    return elevation
-
-
-def srtm_composite(lon_min, lat_min, nx, ny):
-    warnings.warn("This method has been deprecated. "
-                  "See the \"What's new\" section for v0.12.",
-                  DeprecationWarning,
-                  stacklevel=2)
-    return SRTM3Source().combined(lon_min, lat_min, nx, ny)
 
 
 def read_SRTM(fh):
@@ -336,7 +278,7 @@ def read_SRTM(fh):
     if fname.endswith('.zip'):
         from zipfile import ZipFile
         zfh = ZipFile(fh, 'rb')
-        fh = zfh.open(os.path.basename(fname[:-4]), 'r')
+        fh = zfh.open(Path(fname).stem, 'r')
 
     elev = np.fromfile(fh, dtype=np.dtype('>i2'))
     if elev.size == 12967201:
@@ -347,7 +289,7 @@ def read_SRTM(fh):
         raise ValueError(
             f'Shape of SRTM data ({elev.size}) is unexpected.')
 
-    fname = os.path.basename(fname)
+    fname = Path(fname).name
     y_dir, y, x_dir, x = fname[0], int(fname[1:3]), fname[3], int(fname[4:7])
 
     if y_dir == 'S':
@@ -363,21 +305,6 @@ read_SRTM3 = read_SRTM
 read_SRTM1 = read_SRTM
 
 
-def SRTM3_retrieve(lon, lat):
-    """
-    Return the path of a .hgt file for the given SRTM location.
-
-    If no such .hgt file exists (because it is over the ocean)
-    None will be returned.
-
-    """
-    warnings.warn("This method has been deprecated. "
-                  "See the \"What's new\" section for v0.12.",
-                  DeprecationWarning,
-                  stacklevel=2)
-    return SRTM3Source().srtm_fname(lon, lat)
-
-
 class SRTMDownloader(Downloader):
     """
     Provide a SRTM download mechanism.
@@ -387,14 +314,14 @@ class SRTMDownloader(Downloader):
 
     _SRTM_BASE_URL = ('https://e4ftl01.cr.usgs.gov/MEASURES/'
                       'SRTMGL{resolution}.003/2000.02.11/')
-    _SRTM_LOOKUP_CACHE = os.path.join(os.path.dirname(__file__),
-                                      'srtm.npz')
+    _SRTM_LOOKUP_CACHE = Path(__file__).parent / 'srtm.npz'
     _SRTM_LOOKUP_MASK = np.load(_SRTM_LOOKUP_CACHE)['mask']
     """
     The SRTM lookup mask determines whether keys such as 'N43E043' are
     available to download.
 
     """
+
     def __init__(self,
                  target_path_template,
                  pre_downloaded_path_template='',
@@ -434,9 +361,8 @@ class SRTMDownloader(Downloader):
     def acquire_resource(self, target_path, format_dict):
         from zipfile import ZipFile
 
-        target_dir = os.path.dirname(target_path)
-        if not os.path.isdir(target_dir):
-            os.makedirs(target_dir)
+        target_dir = Path(target_path).parent
+        target_dir.mkdir(parents=True, exist_ok=True)
 
         url = self.url(format_dict)
 
@@ -513,10 +439,10 @@ class SRTMDownloader(Downloader):
 
         """
         default_spec = ('SRTM', 'SRTMGL{resolution}', '{y}{x}.hgt')
-        target_path_template = os.path.join('{config[data_dir]}',
-                                            *default_spec)
-        pre_path_template = os.path.join('{config[pre_existing_data_dir]}',
-                                         *default_spec)
+        target_path_template = str(
+            Path('{config[data_dir]}').joinpath(*default_spec))
+        pre_path_template = str(
+            Path('{config[pre_existing_data_dir]}').joinpath(*default_spec))
         return cls(target_path_template=target_path_template,
                    pre_downloaded_path_template=pre_path_template)
 
