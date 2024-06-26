@@ -1,8 +1,7 @@
-# Copyright Cartopy Contributors
+# Copyright Crown and Cartopy Contributors
 #
-# This file is part of Cartopy and is released under the LGPL license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
+# This file is part of Cartopy and is released under the BSD 3-clause license.
+# See LICENSE in the root of the repository for full licensing details.
 
 from matplotlib.path import Path
 import shapely.geometry as sgeom
@@ -56,6 +55,6 @@ class Test_path_to_geos:
         # The first square makes the first geometry with the second square as
         # its interior.  The third square is its own geometry with no interior.
         assert len(geoms) == 2
-        assert all(type(geom) == sgeom.Polygon for geom in geoms)
+        assert all(isinstance(geom, sgeom.Polygon) for geom in geoms)
         assert len(geoms[0].interiors) == 1
         assert len(geoms[1].interiors) == 0

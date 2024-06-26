@@ -9,7 +9,7 @@ Forwarded: not-needed
 
 --- a/lib/cartopy/tests/mpl/test_gridliner.py
 +++ b/lib/cartopy/tests/mpl/test_gridliner.py
-@@ -127,7 +127,7 @@ def test_gridliner_specified_lines():
+@@ -136,7 +136,7 @@ def test_gridliner_specified_lines():
  grid_label_tol = 3.9
  
  
@@ -18,7 +18,7 @@ Forwarded: not-needed
  @pytest.mark.natural_earth
  @pytest.mark.mpl_image_compare(filename='gridliner_labels.png',
                                 tolerance=grid_label_tol)
-@@ -204,7 +204,7 @@ def test_grid_labels():
+@@ -213,7 +213,7 @@ def test_grid_labels():
      return fig
  
  
@@ -26,8 +26,8 @@ Forwarded: not-needed
 +@pytest.mark.skipif(geos_version >= (3, 9, 0), reason="GEOS intersection bug")
  @pytest.mark.natural_earth
  @pytest.mark.mpl_image_compare(filename='gridliner_labels_tight.png',
-                                tolerance=2.92)
-@@ -248,7 +248,7 @@ def test_grid_labels_tight():
+                                tolerance=2.9)
+@@ -295,7 +295,7 @@ def test_gridliner_constrained_adjust_da
      return fig
  
  
@@ -36,7 +36,7 @@ Forwarded: not-needed
  @pytest.mark.natural_earth
  @pytest.mark.parametrize('proj', TEST_PROJS)
  @pytest.mark.mpl_image_compare(style='mpl20')
-@@ -264,7 +264,7 @@ def test_grid_labels_inline(proj):
+@@ -311,7 +311,7 @@ def test_grid_labels_inline(proj):
      return fig
  
  
@@ -45,7 +45,7 @@ Forwarded: not-needed
  @pytest.mark.natural_earth
  @pytest.mark.parametrize('proj', TEST_PROJS)
  @pytest.mark.mpl_image_compare(style='mpl20', tolerance=0.79)
-@@ -289,7 +289,7 @@ def test_grid_labels_inline_usa(proj):
+@@ -336,7 +336,7 @@ def test_grid_labels_inline_usa(proj):
      return fig
  
  

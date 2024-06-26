@@ -1,13 +1,12 @@
-# Copyright Cartopy Contributors
+# Copyright Crown and Cartopy Contributors
 #
-# This file is part of Cartopy and is released under the LGPL license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
+# This file is part of Cartopy and is released under the BSD 3-clause license.
+# See LICENSE in the root of the repository for full licensing details.
 #
 # cython: embedsignature=True
 
 """
-This module pulls together proj, GEOS and ``_crs.pyx`` to implement a function
+Trace pulls together proj, GEOS and ``_crs.pyx`` to implement a function
 to project a `~shapely.geometry.LinearRing` / `~shapely.geometry.LineString`.
 In general, this should never be called manually, instead leaving the
 processing to be done by the :class:`cartopy.crs.Projection` subclasses.
@@ -582,7 +581,10 @@ def project_linear(geometry not None, src_crs not None,
     cdef bool geom_fully_inside = False
     if isinstance(dest_projection, (ccrs._RectangularProjection, ccrs._WarpedRectangularProjection)):
         dest_line = sgeom.LineString([(x[0], x[1]) for x in dest_coords])
-        geom_fully_inside = gp_domain.covers(dest_line)
+        if dest_line.is_valid:
+            # We can only check for covers with valid geometries
+            # some have nans/infs at this point still
+            geom_fully_inside = gp_domain.covers(dest_line)
 
     lines = LineAccumulator()
     for src_idx in range(1, src_size):

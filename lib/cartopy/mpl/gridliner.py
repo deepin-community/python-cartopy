@@ -1,15 +1,22 @@
-# Copyright Cartopy Contributors
+# Copyright Crown and Cartopy Contributors
 #
-# This file is part of Cartopy and is released under the LGPL license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
+# This file is part of Cartopy and is released under the BSD 3-clause license.
+# See LICENSE in the root of the repository for full licensing details.
+"""
+Cartopy can produce gridlines and ticks in any projection and add
+them to the current geoaxes projection, providing a way to add detailed
+location information to the plots.
+
+"""
 
 import itertools
 import operator
 import warnings
 
 import matplotlib
+import matplotlib.artist
 import matplotlib.collections as mcollections
+import matplotlib.text
 import matplotlib.ticker as mticker
 import matplotlib.transforms as mtrans
 import numpy as np
@@ -17,8 +24,12 @@ import shapely.geometry as sgeom
 
 import cartopy
 from cartopy.crs import PlateCarree, Projection, _RectangularProjection
-from cartopy.mpl.ticker import (LatitudeFormatter, LatitudeLocator,
-                                LongitudeFormatter, LongitudeLocator)
+from cartopy.mpl.ticker import (
+    LatitudeFormatter,
+    LatitudeLocator,
+    LongitudeFormatter,
+    LongitudeLocator,
+)
 
 
 degree_locator = mticker.MaxNLocator(nbins=9, steps=[1, 1.5, 1.8, 2, 3, 6, 10])
@@ -48,21 +59,11 @@ _ROTATE_LABEL_PROJS = _POLAR_PROJS + (
 )
 
 
-def _fix_lons(lons):
-    """
-    Fix the given longitudes into the range ``[-180, 180]``.
-
-    """
-    lons = np.array(lons, copy=False, ndmin=1)
-    fixed_lons = ((lons + 180) % 360) - 180
-    # Make the positive 180s positive again.
-    fixed_lons[(fixed_lons == -180) & (lons > 0)] *= -1
-    return fixed_lons
-
-
 def _lon_hemisphere(longitude):
     """Return the hemisphere (E, W or '' for 0) for the given longitude."""
-    longitude = _fix_lons(longitude)
+    # Wrap the longitude to the range -180 to 180, keeping positive 180s
+    lon_wrapped = ((longitude + 180) % 360) - 180
+    longitude = 180 if (longitude > 0 and lon_wrapped == -180) else lon_wrapped
     if longitude > 0:
         hemisphere = 'E'
     elif longitude < 0:
@@ -101,11 +102,7 @@ LATITUDE_FORMATTER = mticker.FuncFormatter(lambda v, pos:
                                            _north_south_formatted(v))
 
 
-class Gridliner:
-    # NOTE: In future, one of these objects will be add-able to a GeoAxes (and
-    # maybe even a plain old mpl axes) and it will call the "_draw_gridliner"
-    # method on draw. This will enable automatic gridline resolution
-    # determination on zoom/pan.
+class Gridliner(matplotlib.artist.Artist):
     def __init__(self, axes, crs, draw_labels=False, xlocator=None,
                  ylocator=None, collection_kwargs=None,
                  xformatter=None, yformatter=None, dms=False,
@@ -113,9 +110,9 @@ class Gridliner:
                  xlim=None, ylim=None, rotate_labels=None,
                  xlabel_style=None, ylabel_style=None, labels_bbox_style=None,
                  xpadding=5, ypadding=5, offset_angle=25,
-                 auto_update=False, formatter_kwargs=None):
+                 auto_update=None, formatter_kwargs=None):
         """
-        Object used by :meth:`cartopy.mpl.geoaxes.GeoAxes.gridlines`
+        Artist used by :meth:`cartopy.mpl.geoaxes.GeoAxes.gridlines`
         to add gridlines and tick labels to a map.
 
         Parameters
@@ -217,9 +214,13 @@ class Gridliner:
             a label must be flipped to be more readable.
             For example, a value of 10 makes a vertical top label to be
             flipped only at 100 degrees.
-        auto_update: bool
+        auto_update: bool, default=True
             Whether to redraw the gridlines and labels when the figure is
             updated.
+
+            .. deprecated:: 0.23
+               In future the gridlines and labels will always be redrawn.
+
         formatter_kwargs: dict, optional
             Options passed to the default formatters.
             See :class:`~cartopy.mpl.ticker.LongitudeFormatter` and
@@ -234,7 +235,13 @@ class Gridliner:
         used for the map, meridians and parallels can cross both the X axis and
         the Y axis.
         """
-        self.axes = axes
+        super().__init__()
+
+        # We do not want the labels clipped to axes.
+        self.set_clip_on(False)
+        # Backcompat: the LineCollection was previously added directly to the
+        # axes, having a default zorder of 2.
+        self.set_zorder(2)
 
         #: The :class:`~matplotlib.ticker.Locator` to use for the x
         #: gridlines and labels.
@@ -332,10 +339,10 @@ class Gridliner:
                 raise ValueError(f"Invalid draw_labels argument: {value}")
 
         if auto_inline:
-            if isinstance(self.axes.projection, _X_INLINE_PROJS):
+            if isinstance(axes.projection, _X_INLINE_PROJS):
                 self.x_inline = True
                 self.y_inline = False
-            elif isinstance(self.axes.projection, _POLAR_PROJS):
+            elif isinstance(axes.projection, _POLAR_PROJS):
                 self.x_inline = False
                 self.y_inline = True
             else:
@@ -399,7 +406,7 @@ class Gridliner:
         #: Control the rotation of labels.
         if rotate_labels is None:
             rotate_labels = (
-                self.axes.projection.__class__ in _ROTATE_LABEL_PROJS)
+                axes.projection.__class__ in _ROTATE_LABEL_PROJS)
         if not isinstance(rotate_labels, (bool, float, int)):
             raise ValueError("Invalid rotate_labels argument")
         self.rotate_labels = rotate_labels
@@ -430,66 +437,21 @@ class Gridliner:
         self.yline_artists = []
 
         # List of all labels (Label objects)
+        self._all_labels = []
+
+        # List of active labels (used in current draw)
         self._labels = []
 
         # Draw status
         self._drawn = False
+        if auto_update is None:
+            auto_update = True
+        else:
+            warnings.warn(
+                "The auto_update parameter was deprecated at Cartopy 0.23.  In future "
+                "the gridlines and labels will always be updated.",
+                DeprecationWarning)
         self._auto_update = auto_update
-
-        # Check visibility of labels at each draw event
-        # (or once drawn, only at resize event ?)
-        self.axes.figure.canvas.mpl_connect('draw_event', self._draw_event)
-
-    @property
-    def xlabels_top(self):
-        warnings.warn('The .xlabels_top attribute is deprecated. Please '
-                      'use .top_labels to toggle visibility instead.')
-        return self.top_labels
-
-    @xlabels_top.setter
-    def xlabels_top(self, value):
-        warnings.warn('The .xlabels_top attribute is deprecated. Please '
-                      'use .top_labels to toggle visibility instead.')
-        self.top_labels = value
-
-    @property
-    def xlabels_bottom(self):
-        warnings.warn('The .xlabels_bottom attribute is deprecated. Please '
-                      'use .bottom_labels to toggle visibility instead.')
-        return self.bottom_labels
-
-    @xlabels_bottom.setter
-    def xlabels_bottom(self, value):
-        warnings.warn('The .xlabels_bottom attribute is deprecated. Please '
-                      'use .bottom_labels to toggle visibility instead.')
-        self.bottom_labels = value
-
-    @property
-    def ylabels_left(self):
-        warnings.warn('The .ylabels_left attribute is deprecated. Please '
-                      'use .left_labels to toggle visibility instead.')
-        return self.left_labels
-
-    @ylabels_left.setter
-    def ylabels_left(self, value):
-        warnings.warn('The .ylabels_left attribute is deprecated. Please '
-                      'use .left_labels to toggle visibility instead.')
-        self.left_labels = value
-
-    @property
-    def ylabels_right(self):
-        warnings.warn('The .ylabels_right attribute is deprecated. Please '
-                      'use .right_labels to toggle visibility instead.')
-        return self.right_labels
-
-    @ylabels_right.setter
-    def ylabels_right(self, value):
-        warnings.warn('The .ylabels_right attribute is deprecated. Please '
-                      'use .right_labels to toggle visibility instead.')
-        self.right_labels = value
-
-    def _draw_event(self, event):
-        self._draw_gridliner(renderer=event.renderer)
 
     def has_labels(self):
         return len(self._labels) != 0
@@ -612,6 +574,25 @@ class Gridliner:
 
         return True
 
+    def _generate_labels(self):
+        """
+        A generator to yield as many labels as needed, re-using existing ones
+        where possible.
+        """
+        for label in self._all_labels:
+            yield label
+
+        while True:
+            # Ran out of existing labels.  Create some empty ones.
+            new_artist = matplotlib.text.Text()
+            new_artist.set_figure(self.axes.figure)
+            new_artist.axes = self.axes
+
+            new_label = Label(new_artist, None, None, None)
+            self._all_labels.append(new_label)
+
+            yield new_label
+
     def _draw_gridliner(self, nx=None, ny=None, renderer=None):
         """Create Artists for all visible elements and add to our Axes.
 
@@ -628,15 +609,6 @@ class Gridliner:
         if self._drawn and not self._auto_update:
             return
         self._drawn = True
-
-        # Clear lists of artists
-        for lines in [*self.xline_artists, *self.yline_artists]:
-            lines.remove()
-        self.xline_artists.clear()
-        self.yline_artists.clear()
-        for label in self._labels:
-            label.artist.remove()
-        self._labels.clear()
 
         # Inits
         lon_lim, lat_lim = self._axes_domain(nx=nx, ny=ny)
@@ -673,6 +645,7 @@ class Gridliner:
         if not any(x in collection_kwargs for x in ['lw', 'linewidth']):
             collection_kwargs.setdefault('linewidth',
                                          matplotlib.rcParams['grid.linewidth'])
+        collection_kwargs.setdefault('clip_path', self.axes.patch)
 
         # Meridians
         lat_min, lat_max = lat_lim
@@ -693,10 +666,16 @@ class Gridliner:
                     isinstance(crs, _RectangularProjection) and
                     abs(np.diff(lon_lim)) == abs(np.diff(crs.x_limits))):
                 nx -= 1
-            lon_lc = mcollections.LineCollection(lon_lines,
-                                                 **collection_kwargs)
-            self.xline_artists.append(lon_lc)
-            self.axes.add_collection(lon_lc, autolim=False)
+
+            if self.xline_artists:
+                # Update existing collection.
+                lon_lc, = self.xline_artists
+                lon_lc.set(segments=lon_lines, **collection_kwargs)
+            else:
+                # Create new collection.
+                lon_lc = mcollections.LineCollection(lon_lines,
+                                                     **collection_kwargs)
+                self.xline_artists.append(lon_lc)
 
         # Parallels
         lon_min, lon_max = lon_lim
@@ -708,14 +687,21 @@ class Gridliner:
                                          n_steps)[np.newaxis, :]
         lat_lines[:, :, 1] = np.array(lat_ticks)[:, np.newaxis]
         if self.ylines:
-            lat_lc = mcollections.LineCollection(lat_lines,
-                                                 **collection_kwargs)
-            self.yline_artists.append(lat_lc)
-            self.axes.add_collection(lat_lc, autolim=False)
+            if self.yline_artists:
+                # Update existing collection.
+                lat_lc, = self.yline_artists
+                lat_lc.set(segments=lat_lines, **collection_kwargs)
+            else:
+                lat_lc = mcollections.LineCollection(lat_lines,
+                                                     **collection_kwargs)
+                self.yline_artists.append(lat_lc)
 
         #################
         # Label drawing #
         #################
+
+        # Clear drawn labels
+        self._labels.clear()
 
         if not any((self.left_labels, self.right_labels, self.bottom_labels,
                     self.top_labels, self.inline_labels, self.geo_labels)):
@@ -777,6 +763,9 @@ class Gridliner:
         # Cache a few things so they aren't re-calculated in the loops.
         crs_transform = self._crs_transform().transform
         inverse_data_transform = self.axes.transData.inverted().transform_point
+
+        # Create a generator for the Label objects.
+        generate_labels = self._generate_labels()
 
         for xylabel, lines, line_ticks, formatter, label_style in (
                 ('x', lon_lines, lon_ticks,
@@ -923,9 +912,11 @@ class Gridliner:
                     elif not y_set:
                         y = pt0[1]
 
-                    # Add text to the plot
+                    # Update generated label.
+                    label = next(generate_labels)
                     text = formatter(tick_value)
-                    artist = self.axes.text(x, y, text, **kw)
+                    artist = label.artist
+                    artist.set(x=x, y=y, text=text, **kw)
 
                     # Update loc from spine overlapping now that we have a bbox
                     # of the label.
@@ -981,8 +972,10 @@ class Gridliner:
                                 break
 
                     # Updates
-                    label = Label(artist, this_path, xylabel, loc)
                     label.set_visible(visible)
+                    label.path = this_path
+                    label.xy = xylabel
+                    label.loc = loc
                     self._labels.append(label)
 
         # Now check overlapping of ordered visible labels
@@ -1239,6 +1232,26 @@ class Gridliner:
 
         return lon_range, lat_range
 
+    def get_visible_children(self):
+        r"""Return a list of the visible child `.Artist`\s."""
+        all_children = (self.xline_artists + self.yline_artists
+                        + self.label_artists)
+        return [c for c in all_children if c.get_visible()]
+
+    def get_tightbbox(self, renderer=None):
+        self._draw_gridliner(renderer=renderer)
+        bboxes = [c.get_tightbbox(renderer=renderer)
+                  for c in self.get_visible_children()]
+        if bboxes:
+            return mtrans.Bbox.union(bboxes)
+        else:
+            return mtrans.Bbox.null()
+
+    def draw(self, renderer=None):
+        self._draw_gridliner(renderer=renderer)
+        for c in self.get_visible_children():
+            c.draw(renderer=renderer)
+
 
 class Label:
     """Helper class to manage the attributes for a single label"""
@@ -1249,7 +1262,10 @@ class Label:
         self.loc = loc
         self.path = path
         self.xy = xy
-        self.priority = loc in ["left", "right", "top", "bottom"]
+
+    @property
+    def priority(self):
+        return self.loc in ["left", "right", "top", "bottom"]
 
     def set_visible(self, value):
         self.artist.set_visible(value)

@@ -1,14 +1,18 @@
-# Copyright Cartopy Contributors
+# Copyright Crown and Cartopy Contributors
 #
-# This file is part of Cartopy and is released under the LGPL license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
+# This file is part of Cartopy and is released under the BSD 3-clause license.
+# See LICENSE in the root of the repository for full licensing details.
 
 import matplotlib.pyplot as plt
 import pytest
 
 import cartopy.crs as ccrs
-from cartopy.tests.mpl import MPL_VERSION
+from cartopy.mpl import _MPL_38
+from cartopy.tests.conftest import _HAS_PYKDTREE_OR_SCIPY
+
+
+if not _HAS_PYKDTREE_OR_SCIPY:
+    pytest.skip('pykdtree or scipy is required', allow_module_level=True)
 
 
 @pytest.mark.natural_earth
@@ -33,8 +37,7 @@ def test_global_map():
 
 @pytest.mark.natural_earth
 @pytest.mark.mpl_image_compare(
-    filename='contour_label.png',
-    tolerance=3.9 if MPL_VERSION.release[:2] >= (3, 8) else 0.5)
+    filename='contour_label.png', tolerance=3.9 if _MPL_38 else 0.5)
 def test_contour_label():
     from cartopy.tests.mpl.test_caching import sample_data
     fig = plt.figure()

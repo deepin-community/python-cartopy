@@ -1,8 +1,7 @@
-# Copyright Cartopy Contributors
+# Copyright Crown and Cartopy Contributors
 #
-# This file is part of Cartopy and is released under the LGPL license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
+# This file is part of Cartopy and is released under the BSD 3-clause license.
+# See LICENSE in the root of the repository for full licensing details.
 
 import numpy as np
 import pytest
@@ -280,7 +279,7 @@ class TestMisc:
         target = ccrs.PlateCarree()
         # Before fixing, this would cause a segmentation fault.
         polygons = target.project_geometry(polygon, source)
-        assert type(polygons) == sgeom.MultiPolygon
+        assert isinstance(polygons, sgeom.MultiPolygon)
 
 
 class TestQuality:

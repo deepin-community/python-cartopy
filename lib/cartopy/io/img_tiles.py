@@ -1,11 +1,11 @@
-# Copyright Cartopy Contributors
+# Copyright Crown and Cartopy Contributors
 #
-# This file is part of Cartopy and is released under the LGPL license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
+# This file is part of Cartopy and is released under the BSD 3-clause license.
+# See LICENSE in the root of the repository for full licensing details.
 
 """
-Implements image tile identification and fetching from various sources.
+Implements image tile identification and fetching from various sources,
+automatically loading the proper tile and resolution depending on the desired domain.
 
 
 The Matplotlib interface can make use of tile objects (defined below) via the
@@ -23,8 +23,8 @@ import io
 from pathlib import Path
 import warnings
 
-from PIL import Image
 import numpy as np
+from PIL import Image
 import shapely.geometry as sgeom
 
 import cartopy
@@ -297,7 +297,7 @@ class MapQuestOSM(GoogleWTS):
         mqdevurl = ('https://devblog.mapquest.com/2016/06/15/'
                     'modernization-of-mapquest-results-in-changes'
                     '-to-open-tile-access/')
-        warnings.warn(f'{url} will require a log in and and will likely'
+        warnings.warn(f'{url} will require a log in and will likely'
                       f' fail. see {mqdevurl} for more details.')
         return url
 
@@ -318,6 +318,66 @@ class OSM(GoogleWTS):
     def _image_url(self, tile):
         x, y, z = tile
         return f'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'
+
+
+class StadiaMapsTiles(GoogleWTS):
+    """
+    Retrieves tiles from stadiamaps.com.
+
+    For a full reference on the styles available please see
+    https://docs.stadiamaps.com/themes/. A few of the specific styles
+    that are made available are ``alidade_smooth``, ``stamen_terrain`` and
+    ``osm_bright``.
+
+    Using the Stadia Maps API requires including an attribution. Please see
+    https://docs.stadiamaps.com/attribution/ for details.
+
+    For most styles that means including the following attribution:
+
+    `© Stadia Maps <https://www.stadiamaps.com/>`_
+    `© OpenMapTiles <https://openmaptiles.org/>`_
+    `© OpenStreetMap contributors <https://www.openstreetmap.org/about/>`_
+
+    with Stamen styles *additionally* requiring the following attribution:
+
+    `© Stamen Design <https://stamen.com/>`_
+
+    Parameters
+    ----------
+    apikey : str, required
+        The authentication key provided by Stadia Maps to query their APIs
+    style : str, optional
+        Name of the desired style. Defaults to ``alidade_smooth``.
+        See https://docs.stadiamaps.com/themes/ for a full list of styles.
+    resolution : str, optional
+        Resolution of the images to return. Defaults to an empty string,
+        standard resolution (256x256). You can also specify "@2x" for high
+        resolution (512x512) tiles.
+    cache : bool or str, optional
+        If True, the default cache directory is used. If False, no cache is
+        used. If a string, the string is used as the path to the cache.
+    """
+
+    def __init__(self,
+                 apikey,
+                 style="alidade_smooth",
+                 resolution="",
+                 cache=False):
+        super().__init__(cache=cache, desired_tile_form="RGBA")
+        self.apikey = apikey
+        self.style = style
+        self.resolution = resolution
+        if style == "stamen_watercolor":
+            # Known style that has the jpg extension
+            self.extension = "jpg"
+        else:
+            self.extension = "png"
+
+    def _image_url(self, tile):
+        x, y, z = tile
+        return ("http://tiles.stadiamaps.com/tiles/"
+                f"{self.style}/{z}/{x}/{y}{self.resolution}.{self.extension}"
+                f"?api_key={self.apikey}")
 
 
 class Stamen(GoogleWTS):
@@ -351,6 +411,9 @@ class Stamen(GoogleWTS):
 
     def __init__(self, style='toner',
                  desired_tile_form=None, cache=False):
+        warnings.warn("The Stamen styles are no longer served by Stamen and "
+                      "are now served by Stadia Maps. Please use the "
+                      "StadiaMapsTiles class instead.")
 
         # preset layer configuration
         layer_config = {
@@ -688,12 +751,12 @@ class AzureMapsTiles(GoogleWTS):
             A valid Azure Maps subscription key.
         tileset_id
             A tileset ID for a map. See
-            https://docs.microsoft.com/en-us/rest/api/maps/renderv2/getmaptilepreview#tilesetid  # noqa: E501
+            https://docs.microsoft.com/en-us/rest/api/maps/renderv2/getmaptilepreview#tilesetid
             for details.
         api_version
             API version to use. Defaults to 2.0 as recommended by Microsoft.
 
-        """
+        """  # noqa: E501
         super().__init__(desired_tile_form=desired_tile_form, cache=cache)
         self.subscription_key = subscription_key
         self.tileset_id = tileset_id

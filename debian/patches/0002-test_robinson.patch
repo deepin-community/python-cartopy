@@ -10,7 +10,7 @@ Bug-Debian: https://bugs.debian.org/951767
 
 --- a/lib/cartopy/tests/crs/test_robinson.py
 +++ b/lib/cartopy/tests/crs/test_robinson.py
-@@ -90,6 +90,7 @@ def test_central_longitude(lon):
+@@ -89,6 +89,7 @@ def test_central_longitude(lon):
      assert_almost_equal(robin.y_limits, [-8625154.6651000, 8625154.6651000])
  
  
@@ -18,7 +18,7 @@ Bug-Debian: https://bugs.debian.org/951767
  def test_transform_point():
      """
      Mostly tests the workaround for a specific problem.
-@@ -110,6 +111,7 @@ def test_transform_point():
+@@ -109,6 +110,7 @@ def test_transform_point():
      assert np.all(np.isnan(result))
  
  

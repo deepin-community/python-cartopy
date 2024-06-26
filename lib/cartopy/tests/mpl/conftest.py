@@ -1,8 +1,7 @@
-# Copyright Cartopy Contributors
+# Copyright Crown and Cartopy Contributors
 #
-# This file is part of Cartopy and is released under the LGPL license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
+# This file is part of Cartopy and is released under the BSD 3-clause license.
+# See LICENSE in the root of the repository for full licensing details.
 from contextlib import ExitStack
 
 import matplotlib.pyplot as plt
@@ -15,6 +14,7 @@ def mpl_test_cleanup(request):
     with ExitStack() as stack:
         # At exit, close all open figures and switch backend back to original.
         stack.callback(plt.switch_backend, plt.get_backend())
+        stack.callback(plt.close, 'all')
 
         # Run each test in a context manager so that state does not leak out
         plt.switch_backend('Agg')
@@ -35,5 +35,6 @@ def pytest_itemcollected(item):
             return
         elif path.basename == 'tests':
             subdir = item.fspath.relto(path)[:-len(item.fspath.ext)]
-            mpl_marker.kwargs['baseline_dir'] = f'baseline_images/{subdir}'
+            mpl_marker.kwargs.setdefault('baseline_dir',
+                                         f'baseline_images/{subdir}')
             break

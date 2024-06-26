@@ -1,12 +1,12 @@
-# Copyright Cartopy Contributors
+# Copyright Crown and Cartopy Contributors
 #
-# This file is part of Cartopy and is released under the LGPL license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
+# This file is part of Cartopy and is released under the BSD 3-clause license.
+# See LICENSE in the root of the repository for full licensing details.
 
 """
-Provides a collection of sub-packages for loading, saving and retrieving
-various data formats.
+These are the base classes in :mod:`cartopy.io` that new resources can leverage
+to implement a new reader or tile client. Together they provide a collection of
+sub-packages for loading, saving and retrieving various data formats.
 
 """
 
@@ -181,7 +181,7 @@ class Downloader:
         :meth:`url` to :meth:`target_path`.
 
         Typically, this is the method that most applications will call,
-        allowing implementors of new Downloaders to specialise
+        allowing implementers of new Downloaders to specialise
         :meth:`acquire_resource`.
 
         Parameters

@@ -1,8 +1,7 @@
-# Copyright Cartopy Contributors
+# Copyright Crown and Cartopy Contributors
 #
-# This file is part of Cartopy and is released under the LGPL license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
+# This file is part of Cartopy and is released under the BSD 3-clause license.
+# See LICENSE in the root of the repository for full licensing details.
 
 import itertools
 import time
@@ -193,6 +192,15 @@ class TestBisect:
             for coord in line_string.coords:
                 assert not any(np.isnan(coord)), \
                     'Unexpected NaN in projected coords.'
+
+    def test_nan_rectangular(self):
+        # Make sure rectangular projections can handle invalid geometries
+        projection = ccrs.Robinson()
+        line_string = sgeom.LineString([(0, 0), (1, 1), (np.nan, np.nan),
+                                        (2, 2), (3, 3)])
+        multi_line_string = projection.project_geometry(line_string,
+                                                        ccrs.PlateCarree())
+        assert len(multi_line_string.geoms) == 2
 
 
 class TestMisc:

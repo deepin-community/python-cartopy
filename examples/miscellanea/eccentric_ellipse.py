@@ -13,9 +13,9 @@ matching eccentricity.
 from io import BytesIO
 from urllib.request import urlopen
 
-from PIL import Image
 import matplotlib.pyplot as plt
 import numpy as np
+from PIL import Image
 
 import cartopy.crs as ccrs
 
@@ -37,7 +37,7 @@ def vesta_image():
         the ``img_proj`` coordinate system.
 
     """
-    url = 'https://www.nasa.gov/sites/default/files/pia17037.jpg'
+    url = 'https://photojournal.jpl.nasa.gov/jpeg/PIA17037.jpg'
     img_handle = BytesIO(urlopen(url).read())
     raw_image = Image.open(img_handle)
     # The image is extremely high-resolution, which takes a long time to

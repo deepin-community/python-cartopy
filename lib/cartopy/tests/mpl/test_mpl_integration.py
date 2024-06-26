@@ -1,8 +1,7 @@
-# Copyright Cartopy Contributors
+# Copyright Crown and Cartopy Contributors
 #
-# This file is part of Cartopy and is released under the LGPL license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
+# This file is part of Cartopy and is released under the BSD 3-clause license.
+# See LICENSE in the root of the repository for full licensing details.
 
 import re
 
@@ -12,7 +11,8 @@ import numpy as np
 import pytest
 
 import cartopy.crs as ccrs
-from cartopy.tests.mpl import MPL_VERSION
+from cartopy.mpl import _MPL_38
+from cartopy.tests.conftest import requires_scipy
 
 
 @pytest.mark.natural_earth
@@ -196,9 +196,7 @@ def test_simple_global():
         id='ObliqueMercator_rotated',
     ),
 ])
-@pytest.mark.mpl_image_compare(
-    tolerance=0.97 if MPL_VERSION.release[:2] < (3, 5) else 0.5,
-    style='mpl20')
+@pytest.mark.mpl_image_compare(style='mpl20')
 def test_global_map(proj):
     if isinstance(proj, tuple):
         proj, kwargs = proj
@@ -241,8 +239,7 @@ def test_cursor_values():
                      r.encode('ascii', 'ignore'))
 
 
-SKIP_PRE_MPL38 = pytest.mark.skipif(
-    MPL_VERSION.release[:2] < (3, 8), reason='mpl < 3.8')
+SKIP_PRE_MPL38 = pytest.mark.skipif(not _MPL_38, reason='mpl < 3.8')
 PARAMETRIZE_PCOLORMESH_WRAP = pytest.mark.parametrize(
     'mesh_data_kind',
     [
@@ -357,7 +354,7 @@ def test_pcolormesh_get_array_with_mask(mesh_data_kind):
     result = c.get_array()
 
     expected = data2
-    if MPL_VERSION.release[:2] < (3, 8):
+    if not _MPL_38:
         expected = expected.ravel()
 
     np.testing.assert_array_equal(np.ma.getmask(result), np.isnan(expected))
@@ -521,7 +518,7 @@ def test_pcolormesh_set_array_nowrap():
     assert not hasattr(mesh, '_wrapped_collection_fix')
 
     expected = data
-    if MPL_VERSION.release[:2] < (3, 8):
+    if not _MPL_38:
         expected = expected.ravel()
     np.testing.assert_array_equal(mesh.get_array(), expected)
 
@@ -588,7 +585,7 @@ def test_pcolormesh_set_clim_with_mask():
 
 @pytest.mark.natural_earth
 @pytest.mark.mpl_image_compare(filename='pcolormesh_limited_area_wrap.png',
-                               tolerance=1.82)
+                               tolerance=1.83)
 def test_pcolormesh_limited_area_wrap():
     # make up some realistic data with bounds (such as data from the UM's North
     # Atlantic Europe model)
@@ -681,7 +678,7 @@ def test_pcolormesh_nan_wrap():
     ax = plt.axes(projection=ccrs.PlateCarree())
     mesh = ax.pcolormesh(xs, ys, data)
     pcolor = getattr(mesh, "_wrapped_collection_fix")
-    if MPL_VERSION.release[:2] < (3, 8):
+    if not _MPL_38:
         assert len(pcolor.get_paths()) == 2
     else:
         assert not pcolor.get_paths()
@@ -820,6 +817,7 @@ def test_quiver_rotated_pole():
     return fig
 
 
+@requires_scipy
 @pytest.mark.natural_earth
 @pytest.mark.mpl_image_compare(filename='quiver_regrid.png')
 def test_quiver_regrid():
@@ -839,6 +837,7 @@ def test_quiver_regrid():
     return fig
 
 
+@requires_scipy
 @pytest.mark.natural_earth
 @pytest.mark.mpl_image_compare(filename='quiver_regrid_with_extent.png',
                                tolerance=0.54)
@@ -860,6 +859,7 @@ def test_quiver_regrid_with_extent():
     return fig
 
 
+@requires_scipy
 @pytest.mark.natural_earth
 @pytest.mark.mpl_image_compare(filename='barbs_plate_carree.png')
 def test_barbs():
@@ -883,6 +883,7 @@ def test_barbs():
     return fig
 
 
+@requires_scipy
 @pytest.mark.natural_earth
 @pytest.mark.mpl_image_compare(filename='barbs_regrid.png')
 def test_barbs_regrid():
@@ -902,6 +903,7 @@ def test_barbs_regrid():
     return fig
 
 
+@requires_scipy
 @pytest.mark.natural_earth
 @pytest.mark.mpl_image_compare(filename='barbs_regrid_with_extent.png',
                                tolerance=0.54)
@@ -958,10 +960,9 @@ def test_barbs_1d_transformed():
     return fig
 
 
+@requires_scipy
 @pytest.mark.natural_earth
-@pytest.mark.mpl_image_compare(
-    filename='streamplot.png', style='mpl20',
-    tolerance=9.77 if MPL_VERSION.release[:2] < (3, 5) else 0.5)
+@pytest.mark.mpl_image_compare(filename='streamplot.png', style='mpl20')
 def test_streamplot():
     x = np.arange(-60, 42.5, 2.5)
     y = np.arange(30, 72.5, 2.5)
@@ -1021,7 +1022,7 @@ def test_annotate():
     ax.annotate('default crs', map_coords, size=5)
 
     # data in map projection using default transform, with
-    # text positioned in platecaree transform
+    # text positioned in platecarree transform
     ax.annotate('mixed crs transforms', map_coords, xycoords='data',
                 xytext=(-175, -55),
                 textcoords=platecarree,

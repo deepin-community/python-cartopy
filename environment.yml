@@ -11,10 +11,10 @@ dependencies:
   - cython>=0.29.24
   - numpy>=1.21
   - shapely>=1.7.1
-  - pyshp>=2.1
-  - pyproj>=3.1.0
+  - pyshp>=2.3
+  - pyproj>=3.3.1
   # The testing label has the proper version of freetype included
-  - conda-forge/label/testing::matplotlib-base>=3.4
+  - conda-forge/label/testing::matplotlib-base>=3.5
 
   # OWS
   - owslib>=0.24.1
@@ -27,12 +27,11 @@ dependencies:
   - pytest-mpl
   - pytest-xdist
   # Documentation
-  - beautifulsoup4
   - pydata-sphinx-theme
   - sphinx
   - sphinx-gallery
   # Extras
-  - flake8
   - pre-commit
   - pykdtree
+  - ruff
   - setuptools_scm

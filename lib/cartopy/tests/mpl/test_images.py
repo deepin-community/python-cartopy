@@ -1,22 +1,26 @@
-# Copyright Cartopy Contributors
+# Copyright Crown and Cartopy Contributors
 #
-# This file is part of Cartopy and is released under the LGPL license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
+# This file is part of Cartopy and is released under the BSD 3-clause license.
+# See LICENSE in the root of the repository for full licensing details.
 
 import types
 
-from PIL import Image
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import numpy as np
+from PIL import Image
 import pytest
 import shapely.geometry as sgeom
 
 from cartopy import config
 import cartopy.crs as ccrs
 import cartopy.io.img_tiles as cimgt
+from cartopy.tests.conftest import _HAS_PYKDTREE_OR_SCIPY
 import cartopy.tests.test_img_tiles as ctest_tiles
+
+
+if not _HAS_PYKDTREE_OR_SCIPY:
+    pytest.skip('pykdtree or scipy is required', allow_module_level=True)
 
 
 NATURAL_EARTH_IMG = (config["repo_data_dir"] / 'raster' / 'natural_earth'

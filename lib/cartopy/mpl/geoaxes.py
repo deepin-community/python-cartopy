@@ -1,11 +1,12 @@
-# Copyright Cartopy Contributors
+# Copyright Crown and Cartopy Contributors
 #
-# This file is part of Cartopy and is released under the LGPL license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
+# This file is part of Cartopy and is released under the BSD 3-clause license.
+# See LICENSE in the root of the repository for full licensing details.
 
 """
-This module defines the :class:`GeoAxes` class, for use with matplotlib.
+This module defines the :class:`cartopy.mpl.geoaxes.GeoAxes` class, an extension of
+matplotlib which adds a `transform` keyword argument to many plotting methods to enable
+geographic projections and boundary wrapping to occur on the axes.
 
 When a Matplotlib figure contains a GeoAxes the plotting commands can transform
 plot results from source coordinates to the GeoAxes' target projection.
@@ -32,22 +33,18 @@ import matplotlib.spines as mspines
 import matplotlib.transforms as mtransforms
 import numpy as np
 import numpy.ma as ma
-import packaging
 import shapely.geometry as sgeom
 
 from cartopy import config
 import cartopy.crs as ccrs
 import cartopy.feature
+from cartopy.mpl import _MPL_38
 import cartopy.mpl.contour
 import cartopy.mpl.feature_artist as feature_artist
 import cartopy.mpl.geocollection
 import cartopy.mpl.patch as cpatch
 from cartopy.mpl.slippy_image_artist import SlippyImageArtist
 
-
-_MPL_VERSION = packaging.version.parse(mpl.__version__)
-assert _MPL_VERSION.release >= (3, 4), \
-    'Cartopy is only supported with Matplotlib 3.4 or greater.'
 
 # A nested mapping from path, source CRS, and target projection to the
 # resulting transformed paths:
@@ -175,12 +172,7 @@ class InterProjectionTransform(mtransforms.Transform):
             return mpath.Path(self.transform(src_path.vertices))
 
         transformed_geoms = []
-        # Check whether this transform has the "force_path_ccw" attribute set.
-        # This is a cartopy extension to the Transform API to allow finer
-        # control of Path orientation handling (Path ordering is not important
-        # in matplotlib, but is in Cartopy).
-        geoms = cpatch.path_to_geos(src_path,
-                                    getattr(self, 'force_path_ccw', False))
+        geoms = cpatch.path_to_geos(src_path)
 
         for geom in geoms:
             proj_geom = self.target_projection.project_geometry(
@@ -414,7 +406,6 @@ class GeoAxes(matplotlib.axes.Axes):
         self.projection = projection
 
         super().__init__(*args, **kwargs)
-        self._gridliners = []
         self.img_factories = []
         self._done_img_factory = False
 
@@ -486,21 +477,21 @@ class GeoAxes(matplotlib.axes.Axes):
         if self.get_autoscale_on() and self.ignore_existing_data_limits:
             self.autoscale_view()
 
-        # Adjust location of background patch so that new gridlines below are
-        # clipped correctly.
-        self.patch._adjust_location()
-
+        # apply_aspect may change the x or y data limits, so must be called
+        # before the patch is updated.
         self.apply_aspect()
-        for gl in self._gridliners:
-            gl._draw_gridliner(renderer=renderer)
+
+        # Adjust location of background patch so that new gridlines generated
+        # by `draw` or `get_tightbbox` are positioned and clipped correctly.
+        self.patch._adjust_location()
 
     def get_tightbbox(self, renderer, *args, **kwargs):
         """
         Extend the standard behaviour of
         :func:`matplotlib.axes.Axes.get_tightbbox`.
 
-        Adjust the axes aspect ratio, background patch location, and add
-        gridliners before calculating the tight bounding box.
+        Adjust the axes aspect ratio and background patch location before
+        calculating the tight bounding box.
         """
         # Shared processing steps
         self._draw_preprocess(renderer)
@@ -512,9 +503,8 @@ class GeoAxes(matplotlib.axes.Axes):
         """
         Extend the standard behaviour of :func:`matplotlib.axes.Axes.draw`.
 
-        Draw grid lines and image factory results before invoking standard
-        Matplotlib drawing. A global range is used if no limits have yet
-        been set.
+        Draw image factory results before invoking standard Matplotlib drawing.
+        A global range is used if no limits have yet been set.
         """
         # Shared processing steps
         self._draw_preprocess(renderer)
@@ -536,21 +526,22 @@ class GeoAxes(matplotlib.axes.Axes):
 
     def _update_title_position(self, renderer):
         super()._update_title_position(renderer)
-        if not self._gridliners:
-            return
 
         if self._autotitlepos is not None and not self._autotitlepos:
             return
 
+        from cartopy.mpl.gridliner import Gridliner
+        gridliners = [a for a in self.artists if isinstance(a, Gridliner)]
+        if not gridliners:
+            return
+
         # Get the max ymax of all top labels
         top = -1
-        for gl in self._gridliners:
+        for gl in gridliners:
             if gl.has_labels():
+                # Both top and geo labels can appear at the top of the axes
                 for label in (gl.top_label_artists +
-                              gl.left_label_artists +
-                              gl.right_label_artists):
-                    # we skip bottom labels because they are usually
-                    # not at the top
+                              gl.geo_label_artists):
                     bb = label.get_tightbbox(renderer)
                     top = max(top, bb.ymax)
         if top < 0:
@@ -654,7 +645,7 @@ class GeoAxes(matplotlib.axes.Axes):
         Parameters
         ----------
         rad_km
-            The radius in km of the the circles to be drawn.
+            The radius in km of the circles to be drawn.
         lons
             A numpy.ndarray, list or tuple of longitude values that
             locate the centre of each circle. Specifying more than one
@@ -724,7 +715,7 @@ class GeoAxes(matplotlib.axes.Axes):
         """
         # Instantiate an artist to draw the feature and add it to the axes.
         artist = feature_artist.FeatureArtist(feature, **kwargs)
-        return self.add_artist(artist)
+        return self.add_collection(artist)
 
     def add_geometries(self, geoms, crs, **kwargs):
         """
@@ -999,12 +990,13 @@ class GeoAxes(matplotlib.axes.Axes):
 
         return super().set_yticks(yticks, minor=minor)
 
-    def stock_img(self, name='ne_shaded'):
+    def stock_img(self, name='ne_shaded', **kwargs):
         """
         Add a standard image to the map.
 
-        Currently, the only (and default) option is a downsampled version of
-        the Natural Earth shaded relief raster.
+        Currently, the only (and default) option for image is a downsampled
+        version of the Natural Earth shaded relief raster. Other options
+        (e.g., alpha) will be passed to :func:`GeoAxes.imshow`.
 
         """
         if name == 'ne_shaded':
@@ -1014,7 +1006,8 @@ class GeoAxes(matplotlib.axes.Axes):
 
             return self.imshow(imread(fname), origin='upper',
                                transform=source_proj,
-                               extent=[-180, 180, -90, 90])
+                               extent=[-180, 180, -90, 90],
+                               **kwargs)
         else:
             raise ValueError('Unknown stock image %r.' % name)
 
@@ -1368,7 +1361,7 @@ class GeoAxes(matplotlib.axes.Axes):
                   xformatter=None, yformatter=None, xlim=None, ylim=None,
                   rotate_labels=None, xlabel_style=None, ylabel_style=None,
                   labels_bbox_style=None, xpadding=5, ypadding=5,
-                  offset_angle=25, auto_update=False, formatter_kwargs=None,
+                  offset_angle=25, auto_update=None, formatter_kwargs=None,
                   **kwargs):
         """
         Automatically add gridlines to the axes, in the given coordinate
@@ -1473,9 +1466,13 @@ class GeoAxes(matplotlib.axes.Axes):
             a label must be flipped to be more readable.
             For example, a value of 10 makes a vertical top label to be
             flipped only at 100 degrees.
-        auto_update: bool
-            Whether to update the grilines and labels when the plot is
+        auto_update: bool, default=True
+            Whether to update the gridlines and labels when the plot is
             refreshed.
+
+            .. deprecated:: 0.23
+               In future the gridlines and labels will always be updated.
+
         formatter_kwargs: dict, optional
             Options passed to the default formatters.
             See :class:`~cartopy.mpl.ticker.LongitudeFormatter` and
@@ -1502,7 +1499,7 @@ class GeoAxes(matplotlib.axes.Axes):
         the Y axis.
         """
         if crs is None:
-            crs = ccrs.PlateCarree()
+            crs = ccrs.PlateCarree(globe=self.projection.globe)
         from cartopy.mpl.gridliner import Gridliner
         gl = Gridliner(
             self, crs=crs, draw_labels=draw_labels, xlocator=xlocs,
@@ -1514,7 +1511,7 @@ class GeoAxes(matplotlib.axes.Axes):
             labels_bbox_style=labels_bbox_style,
             xpadding=xpadding, ypadding=ypadding, offset_angle=offset_angle,
             auto_update=auto_update, formatter_kwargs=formatter_kwargs)
-        self._gridliners.append(gl)
+        self.add_artist(gl)
         return gl
 
     def _gen_axes_patch(self):
@@ -1604,7 +1601,7 @@ class GeoAxes(matplotlib.axes.Axes):
         result = super().contour(*args, **kwargs)
 
         # We need to compute the dataLim correctly for contours.
-        if _MPL_VERSION.release[:2] < (3, 8):
+        if not _MPL_38:
             bboxes = [col.get_datalim(self.transData)
                       for col in result.collections
                       if col.get_paths()]
@@ -1642,20 +1639,10 @@ class GeoAxes(matplotlib.axes.Axes):
             arguments X and Y must be provided and be 2-dimensional.
             The default is False, to compute the contours in data-space.
         """
-        t = kwargs.get('transform')
-        if isinstance(t, ccrs.Projection):
-            kwargs['transform'] = t = t._as_mpl_transform(self)
-        # Set flag to indicate correcting orientation of paths if not ccw
-        if isinstance(t, mtransforms.Transform):
-            for sub_trans, _ in t._iter_break_from_left_to_right():
-                if isinstance(sub_trans, InterProjectionTransform):
-                    if not hasattr(sub_trans, 'force_path_ccw'):
-                        sub_trans.force_path_ccw = True
-
         result = super().contourf(*args, **kwargs)
 
         # We need to compute the dataLim correctly for contours.
-        if _MPL_VERSION.release[:2] < (3, 8):
+        if not _MPL_38:
             bboxes = [col.get_datalim(self.transData)
                       for col in result.collections
                       if col.get_paths()]
@@ -1690,7 +1677,7 @@ class GeoAxes(matplotlib.axes.Axes):
                 kwargs['transform'].source_projection.is_geodetic()):
             raise ValueError('Cartopy cannot currently do spherical '
                              'scatter. The source CRS cannot be a '
-                             'geodetic, consider using the cyllindrical form '
+                             'geodetic, consider using the cylindrical form '
                              '(PlateCarree or RotatedPole).')
 
         result = super().scatter(*args, **kwargs)
@@ -1952,7 +1939,7 @@ class GeoAxes(matplotlib.axes.Axes):
         # masked, so this will only draw a limited subset of
         # polygons that were actually wrapped.
 
-        if _MPL_VERSION.release[:2] < (3, 8):
+        if not _MPL_38:
             # We will add the original data mask in later to
             # make sure that set_array can work in future
             # calls on the proper sized array inputs.

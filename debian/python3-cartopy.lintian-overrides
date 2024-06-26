@@ -6,3 +6,6 @@ application-in-library-section python [usr/bin/cartopy_feature_download]
 library-package-name-for-application [usr/bin/cartopy_feature_download]
 no-manual-page [usr/bin/cartopy_feature_download]
 
+# False positive
+package-contains-documentation-outside-usr-share-doc [usr/lib/python3/dist-packages/*.*-info/*.txt]
+

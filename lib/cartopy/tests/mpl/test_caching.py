@@ -1,8 +1,7 @@
-# Copyright Cartopy Contributors
+# Copyright Crown and Cartopy Contributors
 #
-# This file is part of Cartopy and is released under the LGPL license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
+# This file is part of Cartopy and is released under the BSD 3-clause license.
+# See LICENSE in the root of the repository for full licensing details.
 
 import gc
 from unittest import mock
@@ -17,12 +16,17 @@ import numpy as np
 import pytest
 
 import cartopy.crs as ccrs
-from cartopy.io.ogc_clients import _OWSLIB_AVAILABLE, WMTSRasterSource
+from cartopy.tests.conftest import _HAS_PYKDTREE_OR_SCIPY
+
+
+if _HAS_PYKDTREE_OR_SCIPY:
+    from cartopy.io.ogc_clients import _OWSLIB_AVAILABLE, WMTSRasterSource
+
 import cartopy.io.shapereader
+from cartopy.mpl import _MPL_38
 from cartopy.mpl.feature_artist import FeatureArtist
 import cartopy.mpl.geoaxes as cgeoaxes
 import cartopy.mpl.patch
-from cartopy.tests.mpl import MPL_VERSION
 
 
 def sample_data(shape=(73, 145)):
@@ -121,7 +125,7 @@ def test_contourf_transform_path_counting():
     with mock.patch('cartopy.mpl.patch.path_to_geos') as path_to_geos_counter:
         x, y, z = sample_data((30, 60))
         cs = ax.contourf(x, y, z, 5, transform=ccrs.PlateCarree())
-        if MPL_VERSION.release[:2] < (3, 8):
+        if not _MPL_38:
             n_geom = sum(len(c.get_paths()) for c in cs.collections)
         else:
             n_geom = len(cs.get_paths())
@@ -149,7 +153,9 @@ def test_contourf_transform_path_counting():
 
 @pytest.mark.filterwarnings("ignore:TileMatrixLimits")
 @pytest.mark.network
-@pytest.mark.skipif(not _OWSLIB_AVAILABLE, reason='OWSLib is unavailable.')
+@pytest.mark.skipif(not _HAS_PYKDTREE_OR_SCIPY or not _OWSLIB_AVAILABLE,
+                    reason='OWSLib and at least one of pykdtree or scipy is required')
+@pytest.mark.xfail(reason='NASA servers are returning bad content metadata')
 def test_wmts_tile_caching():
     image_cache = WMTSRasterSource._shared_image_cache
     image_cache.clear()

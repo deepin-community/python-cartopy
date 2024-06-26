@@ -11,7 +11,7 @@ Forwarded: not-needed
 
 --- a/lib/cartopy/tests/crs/test_lambert_azimuthal_equal_area.py
 +++ b/lib/cartopy/tests/crs/test_lambert_azimuthal_equal_area.py
-@@ -7,12 +7,15 @@
+@@ -6,12 +6,15 @@
  import numpy as np
  from numpy.testing import assert_almost_equal
  import pytest
@@ -29,7 +29,7 @@ Forwarded: not-needed
          other_args = {'ellps=WGS84', 'lon_0=0.0', 'lat_0=0.0', 'x_0=0.0',
 --- a/lib/cartopy/tests/mpl/test_features.py
 +++ b/lib/cartopy/tests/mpl/test_features.py
-@@ -7,6 +7,7 @@ from xml.etree.ElementTree import ParseE
+@@ -6,6 +6,7 @@ from xml.etree.ElementTree import ParseE
  
  import matplotlib.pyplot as plt
  import pytest
@@ -37,12 +37,12 @@ Forwarded: not-needed
  
  import cartopy.crs as ccrs
  import cartopy.feature as cfeature
-@@ -43,6 +44,8 @@ def test_natural_earth_custom():
+@@ -46,6 +47,8 @@ def test_natural_earth_custom():
      return ax.figure
  
  
 +@pytest.mark.xfail('i386' in sysconfig.get_config_var('MULTIARCH'),
 +                   reason='Limitations of i386 architecture')
+ @pytest.mark.skipif(not _HAS_PYKDTREE_OR_SCIPY, reason='pykdtree or scipy is required')
  @pytest.mark.mpl_image_compare(filename='gshhs_coastlines.png', tolerance=0.95)
  def test_gshhs():
-     ax = plt.axes(projection=ccrs.Mollweide())
