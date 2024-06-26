@@ -1,8 +1,7 @@
-# Copyright Cartopy Contributors
+# Copyright Crown and Cartopy Contributors
 #
-# This file is part of Cartopy and is released under the LGPL license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
+# This file is part of Cartopy and is released under the BSD 3-clause license.
+# See LICENSE in the root of the repository for full licensing details.
 
 import copy
 from io import BytesIO
@@ -12,9 +11,8 @@ import pickle
 import warnings
 
 import numpy as np
-from numpy.testing import assert_almost_equal
+from numpy.testing import assert_almost_equal, assert_array_equal
 from numpy.testing import assert_array_almost_equal as assert_arr_almost_eq
-from numpy.testing import assert_array_equal
 import pyproj
 import pytest
 import shapely.geometry as sgeom
@@ -256,11 +254,11 @@ class TestCRS:
 
 @pytest.fixture(params=[
     [ccrs.PlateCarree, {}],
-    [ccrs.PlateCarree, dict(
-        central_longitude=1.23)],
-    [ccrs.NorthPolarStereo, dict(
-        central_longitude=42.5,
-        globe=ccrs.Globe(ellipse="helmert"))],
+    [ccrs.PlateCarree, dict(central_longitude=1.23)],
+    [ccrs.NorthPolarStereo, dict(central_longitude=42.5,
+                                 globe=ccrs.Globe(ellipse="helmert"))],
+    [ccrs.CRS, dict(proj4_params="3088")],
+    [ccrs.epsg, dict(code="3088")]
 ])
 def proj_to_copy(request):
     cls, kwargs = request.param

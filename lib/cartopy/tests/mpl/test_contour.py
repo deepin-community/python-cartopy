@@ -1,17 +1,15 @@
-# Copyright Cartopy Contributors
+# Copyright Crown and Cartopy Contributors
 #
-# This file is part of Cartopy and is released under the LGPL license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
+# This file is part of Cartopy and is released under the BSD 3-clause license.
+# See LICENSE in the root of the repository for full licensing details.
 
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 import pytest
-from scipy.interpolate import NearestNDInterpolator
-from scipy.signal import convolve2d
 
 import cartopy.crs as ccrs
+from cartopy.tests.conftest import requires_scipy
 
 
 def test_contour_plot_bounds():
@@ -72,8 +70,12 @@ def test_plot_after_contour_doesnt_shrink(func):
     assert_array_almost_equal(ax.get_extent(), expected)
 
 
+@requires_scipy
 def test_contour_linear_ring():
     """Test contourf with a section that only has 3 points."""
+    from scipy.interpolate import NearestNDInterpolator
+    from scipy.signal import convolve2d
+
     ax = plt.axes([0.01, 0.05, 0.898, 0.85], projection=ccrs.Mercator(),
                   aspect='equal')
     ax.set_extent([-99.6, -89.0, 39.8, 45.5])

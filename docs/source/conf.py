@@ -1,8 +1,7 @@
-# Copyright Cartopy Contributors
+# Copyright Crown and Cartopy Contributors
 #
-# This file is part of Cartopy and is released under the LGPL license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
+# This file is part of Cartopy and is released under the BSD 3-clause license.
+# See LICENSE in the root of the repository for full licensing details.
 
 # -*- coding: utf-8 -*-
 #
@@ -93,6 +92,12 @@ subsection_order = ExplicitOrder(['../../examples/lines_and_polygons',
 sphinx_gallery_conf = {
     'capture_repr': (),
     'examples_dirs': ['../../examples'],
+    # NASA wmts servers are returning bad content metadata
+    "expected_failing_examples": [
+        '../../examples/web_services/reprojected_wmts.py',
+        '../../examples/web_services/wmts.py',
+        '../../examples/web_services/wmts_time.py',
+    ],
     'filename_pattern': '^((?!sgskip).)*$',
     'gallery_dirs': ['gallery'],
     'within_subsection_order': ExampleTitleSortKey,

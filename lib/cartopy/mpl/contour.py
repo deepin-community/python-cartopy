@@ -1,14 +1,13 @@
-# Copyright Cartopy Contributors
+# Copyright Crown and Cartopy Contributors
 #
-# This file is part of Cartopy and is released under the LGPL license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
+# This file is part of Cartopy and is released under the BSD 3-clause license.
+# See LICENSE in the root of the repository for full licensing details.
 
-import matplotlib as mpl
 from matplotlib.contour import QuadContourSet
 import matplotlib.path as mpath
 import numpy as np
-import packaging
+
+from cartopy.mpl import _MPL_38
 
 
 class GeoContourSet(QuadContourSet):
@@ -21,7 +20,7 @@ class GeoContourSet(QuadContourSet):
     # fiddling with instance.__class__.
 
     def clabel(self, *args, **kwargs):
-        if packaging.version.parse(mpl.__version__).release[:2] < (3, 8):
+        if not _MPL_38:
             # nb: contour labelling does not work very well for filled
             # contours - it is recommended to only label line contours.
             # This is especially true when inline=True.

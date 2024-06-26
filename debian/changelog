@@ -1,3 +1,20 @@
+python-cartopy (0.23.0+dfsg-1) unstable; urgency=medium
+
+  * Team upload.
+  * New upstream release.
+  * Remove generated files in clean target.
+    (closes: #1049269)
+  * Use execute_{before,after} instead of override in rules file.
+  * Switch to dh-sequence-*.
+  * Update lintian overrides.
+  * Update copyright file.
+  * Drop cartopy_feature_download.patch, fixed upstream.
+    Refresh remaining patches.
+  * Add patch to mark tests requiring network accordingly.
+  * Update rules for shapefiles directory removed upstream.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Thu, 11 Apr 2024 06:00:33 +0200
+
 python-cartopy (0.22.0+dfsg-1) unstable; urgency=medium
 
   * Team upload.

@@ -1,8 +1,7 @@
-# Copyright Cartopy Contributors
+# Copyright Crown and Cartopy Contributors
 #
-# This file is part of Cartopy and is released under the LGPL license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
+# This file is part of Cartopy and is released under the BSD 3-clause license.
+# See LICENSE in the root of the repository for full licensing details.
 
 """
 The crs module defines Coordinate Reference Systems and the transformations
@@ -126,7 +125,9 @@ class Globe:
 
 class CRS(_CRS):
     """
-    Define a Coordinate Reference System using proj.
+    Define a Coordinate Reference System using proj. The :class:`cartopy.crs.CRS`
+    class is the very core of cartopy, all coordinate reference systems in cartopy
+    have :class:`~cartopy.crs.CRS` as a parent class.
     """
 
     #: Whether this projection can handle ellipses.
@@ -148,6 +149,8 @@ class CRS(_CRS):
             See :class:`~cartopy.crs.Globe` for details.
 
         """
+        self.input = (proj4_params, globe)
+
         # for compatibility with pyproj.CRS and rasterio.crs.CRS
         try:
             proj4_params = proj4_params.to_wkt()
@@ -210,13 +213,17 @@ class CRS(_CRS):
 
     def __reduce__(self):
         """
-        Implement the __reduce__ API so that unpickling produces a stateless
-        instance of this class (e.g. an empty tuple). The state will then be
-        added via __getstate__ and __setstate__.
-        We are forced to this approach because a CRS does not store
-        the constructor keyword arguments in its state.
+        Implement the __reduce__ method used when pickling or performing deepcopy.
         """
-        return self.__class__, (), self.__getstate__()
+        if type(self) is CRS:
+            # State can be reproduced by the proj4_params and globe inputs.
+            return self.__class__, self.input
+        else:
+            # Produces a stateless instance of this class (e.g. an empty tuple).
+            # The state will then be added via __getstate__ and __setstate__.
+            # We are forced to this approach because a CRS does not store
+            # the constructor keyword arguments in its state.
+            return self.__class__, (), self.__getstate__()
 
     def __getstate__(self):
         """Return the full state of this instance for reconstruction
@@ -1783,7 +1790,7 @@ class LambertConformal(Projection):
             lons[1:-1] = np.linspace(central_longitude - 180 + 0.001,
                                      central_longitude + 180 - 0.001, n)
 
-        points = self.transform_points(PlateCarree(), lons, lats)
+        points = self.transform_points(PlateCarree(globe=globe), lons, lats)
 
         self._boundary = sgeom.LinearRing(points)
         mins = np.min(points, axis=0)
@@ -2498,7 +2505,7 @@ class Robinson(_WarpedRectangularProjection):
 
 class InterruptedGoodeHomolosine(Projection):
     """
-    Composite equal-area projection empahsizing either land or
+    Composite equal-area projection emphasizing either land or
     ocean features.
 
     Original Reference:

@@ -1,8 +1,7 @@
-# Copyright Cartopy Contributors
+# Copyright Crown and Cartopy Contributors
 #
-# This file is part of Cartopy and is released under the LGPL license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
+# This file is part of Cartopy and is released under the BSD 3-clause license.
+# See LICENSE in the root of the repository for full licensing details.
 
 from numpy.testing import assert_array_almost_equal
 import pyproj
@@ -49,6 +48,14 @@ def test_specific_lambert():
                                 globe=ccrs.Globe(ellipse='GRS80'))
     other_args = {'ellps=GRS80', 'lon_0=10', 'lat_0=52',
                   'x_0=4000000', 'y_0=2800000', 'lat_1=35', 'lat_2=65'}
+    check_proj_params('lcc', crs, other_args)
+
+
+def test_lambert_moon():
+    moon = ccrs.Globe(ellipse=None, semimajor_axis=1737400, semiminor_axis=1737400)
+    crs = ccrs.LambertConformal(globe=moon)
+    other_args = {'a=1737400', 'b=1737400', 'lat_0=39.0', 'lat_1=33', 'lat_2=45',
+                  'lon_0=-96.0', 'x_0=0.0', 'y_0=0.0'}
     check_proj_params('lcc', crs, other_args)
 
 

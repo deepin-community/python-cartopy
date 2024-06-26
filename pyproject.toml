@@ -3,7 +3,13 @@ requires = [
     "wheel",
     "setuptools >= 40.6.0",
     "Cython >= 0.29.24",
-    "oldest-supported-numpy",
+    # numpy requirement for wheel builds for distribution on PyPI - building
+    # against 2.x yields wheels that are also compatible with numpy 1.x at
+    # runtime.
+    # Note that building against numpy 1.x works fine too - users and
+    # redistributors can do this by installing the numpy version they like and
+    # disabling build isolation.
+    "numpy>=2.0.0rc1",
     "setuptools_scm >= 7.0.0",
 ]
 build-backend = "setuptools.build_meta"
@@ -17,11 +23,11 @@ description = "A Python library for cartographic visualizations with Matplotlib"
 readme = "README.md"
 requires-python = ">=3.9"
 keywords = ["cartography", "map", "transform", "projection", "pyproj", "shapely", "shapefile"]
-license = {file = "COPYING.LESSER"}
+license = {file = "LICENSE"}
 classifiers = [
     'Development Status :: 4 - Beta',
     'Framework :: Matplotlib',
-    'License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)',
+    'License :: OSI Approved :: BSD License',
     'Operating System :: MacOS :: MacOS X',
     'Operating System :: Microsoft :: Windows',
     'Operating System :: POSIX',
@@ -33,6 +39,7 @@ classifiers = [
     'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
     'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
     'Programming Language :: Python :: 3 :: Only',
     'Topic :: Scientific/Engineering',
     'Topic :: Scientific/Engineering :: GIS',
@@ -40,23 +47,24 @@ classifiers = [
 ]
 dependencies = [
     "numpy>=1.21",
-    "matplotlib>=3.4",
+    "matplotlib>=3.5",
     "shapely>=1.7",
     "packaging>=20",
-    "pyshp>=2.1",
-    "pyproj>=3.1.0",
+    "pyshp>=2.3",
+    "pyproj>=3.3.1",
 ]
 dynamic = ["version"]
 
 [project.optional-dependencies]
-doc = ["beautifulsoup4", "pydata-sphinx-theme", "sphinx", "sphinx-gallery"]
+doc = ["pydata-sphinx-theme", "sphinx", "sphinx-gallery"]
 speedups = ["pykdtree", "fiona"]
 ows = ["OWSLib>=0.20.0", "pillow>=6.1.0"]
 plotting = ["pillow>=6.1.0", "scipy>=1.3.1"]
+srtm = ["beautifulsoup4"]
 test = ["pytest>=5.1.2", "pytest-mpl>=0.11", "pytest-xdist", "pytest-cov", "coveralls"]
 
 [project.scripts]
-feature_download = "tools.cartopy_feature_download.py:__main__"
+cartopy_feature_download = "cartopy.feature.download.__main__:main"
 
 [project.urls]
 documentation='https://scitools.org.uk/cartopy/docs/latest/'
@@ -76,8 +84,8 @@ cartopy = ["lib/cartopy/tests/mpl/baseline_images/**",
 write_to = "lib/cartopy/_version.py"
 
 [tool.codespell]
-ignore-words-list = "damon,koordinates,linz,slippy,subtiles,tring"
-skip = "./.git,./docs/build,./docs/source/gallery,./docs/source/reference,*.cpp,*.css,*.examples,*.js,*.html,*.ipynb,*.pdf,*.rst.txt"
+ignore-words-list = "damon,koordinates,linz,manuel,slippy,subtiles,tring"
+skip = "docs/source/copyright.rst,*.cpp,*.css,*.examples,*.js,*.html,*.ipynb,*.pdf,*.rst.txt"
 
 [tool.check-manifest]
 ignore = [
@@ -85,15 +93,17 @@ ignore = [
     "lib/cartopy/trace.cpp",
 ]
 
-[tool.isort]
-force_sort_within_sections = true
-known_first_party = "cartopy"
-lines_after_imports = 2
-no_lines_before = "LOCALFOLDER"
-skip_gitignore = true
-verbose = false
-
 [tool.pytest.ini_options]
 addopts = "--mpl"
 testpaths = ["lib"]
 python_files = ["test_*.py"]
+
+[tool.ruff]
+target-version = "py39"
+lint.select = ["E", "F", "I", "W"]
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = true
+known-first-party = ["cartopy"]
+lines-after-imports = 2
+no-lines-before = ["local-folder"]

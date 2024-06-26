@@ -1,16 +1,15 @@
 #!/usr/bin/env python
-# Copyright Cartopy Contributors
+# Copyright Crown and Cartopy Contributors
 #
-# This file is part of Cartopy and is released under the LGPL license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
+# This file is part of Cartopy and is released under the BSD 3-clause license.
+# See LICENSE in the root of the repository for full licensing details.
 """
 This module provides a command-line tool for triggering the download of
 the data used by various Feature instances.
 
 For detail on how to use this tool, execute it with the `-h` option:
 
-    python cartopy_feature_download.py -h
+    python -m cartopy.feature.download -h
 
 """
 
@@ -107,7 +106,7 @@ def download_features(group_names, dry_run=True):
                               ''.format(category, name, scale, len(geoms)))
 
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(description='Download feature datasets.')
     parser.add_argument('group_names', nargs='+',
                         choices=FEATURE_DEFN_GROUPS,
@@ -146,3 +145,7 @@ if __name__ == '__main__':
     config['downloaders'][SHP_NE_SPEC].url_template = URL_TEMPLATE
 
     download_features(args.group_names, dry_run=args.dry_run)
+
+
+if __name__ == '__main__':
+    main()

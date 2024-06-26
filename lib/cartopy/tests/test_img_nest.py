@@ -1,8 +1,7 @@
-# Copyright Cartopy Contributors
+# Copyright Crown and Cartopy Contributors
 #
-# This file is part of Cartopy and is released under the LGPL license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
+# This file is part of Cartopy and is released under the BSD 3-clause license.
+# See LICENSE in the root of the repository for full licensing details.
 
 import io
 from pathlib import Path
@@ -11,9 +10,9 @@ import shutil
 import sys
 import warnings
 
-from PIL import Image
 import numpy as np
 from numpy.testing import assert_array_almost_equal, assert_array_equal
+from PIL import Image
 import pytest
 import shapely.geometry as sgeom
 
@@ -239,7 +238,7 @@ def test_nest(nest_from_config):
             sorted(_tile_from_img(img) for z, img in
                    nest.subtiles(('aerial z1 test', x1_y0_z1))))
 
-    # check that the the images in the nest from configuration are the
+    # check that the images in the nest from configuration are the
     # same as those created by hand.
     for name in nest_z0_z1._collections_by_name.keys():
         for img in nest_z0_z1._collections_by_name[name].images:

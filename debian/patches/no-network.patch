@@ -1,0 +1,83 @@
+Description: Mark tests requiring network accordingly.
+ Network is not available in the Debian package build environment.
+Author: Bas Couwenberg <sebastic@debian.org>
+Forwarded: https://github.com/SciTools/cartopy/issues/2368
+
+--- a/lib/cartopy/tests/mpl/test_feature_artist.py
++++ b/lib/cartopy/tests/mpl/test_feature_artist.py
+@@ -61,6 +61,7 @@ def cached_paths(geom, target_projection
+     return geom_cache.get(target_projection, None)
+ 
+ 
++@pytest.mark.natural_earth
+ @pytest.mark.mpl_image_compare(filename='feature_artist.png')
+ def test_feature_artist_draw(feature):
+     fig, ax = robinson_map()
+@@ -69,6 +70,7 @@ def test_feature_artist_draw(feature):
+     return fig
+ 
+ 
++@pytest.mark.natural_earth
+ @pytest.mark.mpl_image_compare(filename='feature_artist.png')
+ def test_feature_artist_draw_facecolor_list(feature):
+     fig, ax = robinson_map()
+@@ -77,6 +79,7 @@ def test_feature_artist_draw_facecolor_l
+     return fig
+ 
+ 
++@pytest.mark.natural_earth
+ @pytest.mark.mpl_image_compare(filename='feature_artist.png')
+ def test_feature_artist_draw_cmap(feature):
+     fig, ax = robinson_map()
+@@ -87,6 +90,7 @@ def test_feature_artist_draw_cmap(featur
+     return fig
+ 
+ 
++@pytest.mark.natural_earth
+ @pytest.mark.mpl_image_compare(filename='feature_artist.png')
+ def test_feature_artist_draw_styled_feature(feature):
+     geoms = list(feature.geometries())
+@@ -98,6 +102,7 @@ def test_feature_artist_draw_styled_feat
+     return fig
+ 
+ 
++@pytest.mark.natural_earth
+ @pytest.mark.mpl_image_compare(filename='feature_artist.png')
+ def test_feature_artist_draw_styler(feature):
+     geoms = list(feature.geometries())
+--- a/lib/cartopy/tests/mpl/test_features.py
++++ b/lib/cartopy/tests/mpl/test_features.py
+@@ -49,6 +49,7 @@ def test_natural_earth_custom():
+ 
+ @pytest.mark.xfail('i386' in sysconfig.get_config_var('MULTIARCH'),
+                    reason='Limitations of i386 architecture')
++@pytest.mark.network
+ @pytest.mark.skipif(not _HAS_PYKDTREE_OR_SCIPY, reason='pykdtree or scipy is required')
+ @pytest.mark.mpl_image_compare(filename='gshhs_coastlines.png', tolerance=0.95)
+ def test_gshhs():
+--- a/lib/cartopy/tests/mpl/test_gridliner.py
++++ b/lib/cartopy/tests/mpl/test_gridliner.py
+@@ -262,6 +262,7 @@ def test_grid_labels_tight():
+     return fig
+ 
+ 
++@pytest.mark.natural_earth
+ @pytest.mark.mpl_image_compare(
+     filename='gridliner_constrained_adjust_datalim.png',
+     tolerance=grid_label_tol)
+@@ -496,6 +497,7 @@ def test_gridliner_count_draws():
+         mocked.assert_called_once()
+ 
+ 
++@pytest.mark.natural_earth
+ @pytest.mark.mpl_image_compare(
+     baseline_dir='baseline_images/mpl/test_mpl_integration',
+     filename='simple_global.png')
+@@ -522,6 +524,7 @@ def test_gridliner_save_tight_bbox():
+     fig.savefig(io.BytesIO(), bbox_inches='tight')
+ 
+ 
++@pytest.mark.natural_earth
+ @pytest.mark.mpl_image_compare(filename='gridliner_labels_title_adjust.png',
+                                tolerance=grid_label_tol)
+ def test_gridliner_title_adjust():
