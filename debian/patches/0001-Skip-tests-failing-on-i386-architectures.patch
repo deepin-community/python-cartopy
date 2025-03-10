@@ -43,6 +43,6 @@ Forwarded: not-needed
  
 +@pytest.mark.xfail('i386' in sysconfig.get_config_var('MULTIARCH'),
 +                   reason='Limitations of i386 architecture')
+ @pytest.mark.network
  @pytest.mark.skipif(not _HAS_PYKDTREE_OR_SCIPY, reason='pykdtree or scipy is required')
  @pytest.mark.mpl_image_compare(filename='gshhs_coastlines.png', tolerance=0.95)
- def test_gshhs():

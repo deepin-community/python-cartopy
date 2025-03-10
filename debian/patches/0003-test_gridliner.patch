@@ -9,7 +9,7 @@ Forwarded: not-needed
 
 --- a/lib/cartopy/tests/mpl/test_gridliner.py
 +++ b/lib/cartopy/tests/mpl/test_gridliner.py
-@@ -136,7 +136,7 @@ def test_gridliner_specified_lines():
+@@ -135,7 +135,7 @@ def test_gridliner_specified_lines():
  grid_label_tol = 3.9
  
  
@@ -18,7 +18,7 @@ Forwarded: not-needed
  @pytest.mark.natural_earth
  @pytest.mark.mpl_image_compare(filename='gridliner_labels.png',
                                 tolerance=grid_label_tol)
-@@ -213,7 +213,7 @@ def test_grid_labels():
+@@ -212,7 +212,7 @@ def test_grid_labels():
      return fig
  
  
@@ -27,7 +27,15 @@ Forwarded: not-needed
  @pytest.mark.natural_earth
  @pytest.mark.mpl_image_compare(filename='gridliner_labels_tight.png',
                                 tolerance=2.9)
-@@ -295,7 +295,7 @@ def test_gridliner_constrained_adjust_da
+@@ -261,6 +261,7 @@ def test_grid_labels_tight():
+     return fig
+ 
+ 
++@pytest.mark.xfail(strict=False, reason="Fails with older MPL")
+ @pytest.mark.mpl_image_compare(
+     filename='gridliner_constrained_adjust_datalim.png',
+     tolerance=grid_label_tol)
+@@ -294,7 +295,7 @@ def test_gridliner_constrained_adjust_da
      return fig
  
  
@@ -36,7 +44,7 @@ Forwarded: not-needed
  @pytest.mark.natural_earth
  @pytest.mark.parametrize('proj', TEST_PROJS)
  @pytest.mark.mpl_image_compare(style='mpl20')
-@@ -311,7 +311,7 @@ def test_grid_labels_inline(proj):
+@@ -310,7 +311,7 @@ def test_grid_labels_inline(proj):
      return fig
  
  
@@ -45,10 +53,10 @@ Forwarded: not-needed
  @pytest.mark.natural_earth
  @pytest.mark.parametrize('proj', TEST_PROJS)
  @pytest.mark.mpl_image_compare(style='mpl20', tolerance=0.79)
-@@ -336,7 +336,7 @@ def test_grid_labels_inline_usa(proj):
-     return fig
+@@ -336,7 +337,7 @@ def test_grid_labels_inline_usa(proj):
  
  
+ @pytest.mark.natural_earth
 -@pytest.mark.skipif(geos_version == (3, 9, 0), reason="GEOS intersection bug")
 +@pytest.mark.skipif(geos_version >= (3, 9, 0), reason="GEOS intersection bug")
  @pytest.mark.mpl_image_compare(filename='gridliner_labels_bbox_style.png',
