@@ -172,6 +172,7 @@ def test_simple_global():
     pytest.param((ccrs.InterruptedGoodeHomolosine, dict(emphasis='land')),
                  id='InterruptedGoodeHomolosine'),
     ccrs.LambertCylindrical,
+    ccrs.LambertZoneII,
     pytest.param((ccrs.Mercator, dict(min_latitude=-85, max_latitude=85)),
                  id='Mercator'),
     ccrs.Miller,
@@ -654,6 +655,17 @@ def test_pcolormesh_single_column_wrap():
     return fig
 
 
+def test_pcolormesh_wrap_gouraud_shading_failing_mask_creation():
+    x_range = np.linspace(-180, 180, 50)
+    y_range = np.linspace(90, -90, 50)
+    x, y = np.meshgrid(x_range, y_range)
+    data = ((np.sin(np.deg2rad(x))) / 10. + np.exp(np.cos(np.deg2rad(y))))
+
+    fig = plt.figure(figsize=(10, 6))
+    ax = fig.add_subplot(1, 1, 1, projection=ccrs.Mercator())
+    ax.pcolormesh(x, y, data, transform=ccrs.PlateCarree(), shading='gouraud')
+
+
 def test_pcolormesh_diagonal_wrap():
     # Check that a cell with the top edge on one side of the domain
     # and the bottom edge on the other gets wrapped properly
@@ -762,9 +774,24 @@ def test_pcolormesh_shading(shading, input_size, expected):
     d = np.zeros((3, 3))
 
     coll = ax.pcolormesh(x, y, d, shading=shading)
-    # We can use coll.get_coordinates() once MPL >= 3.5 is required
-    # For now, we use the private variable for testing
-    assert coll._coordinates.shape == (expected, expected, 2)
+    assert coll.get_coordinates().shape == (expected, expected, 2)
+
+
+def test__wrap_args_default_shading():
+    # Passing shading=None should give the same as not passing the shading parameter.
+    x = np.linspace(0, 360, 12)
+    y = np.linspace(0, 90, 5)
+    z = np.zeros((12, 5))
+
+    ax = plt.subplot(projection=ccrs.Orthographic())
+    args_ref, kwargs_ref = ax._wrap_args(x, y, z, transform=ccrs.PlateCarree())
+    args_test, kwargs_test = ax._wrap_args(
+        x, y, z, transform=ccrs.PlateCarree(), shading=None)
+
+    for array_ref, array_test in zip(args_ref, args_test):
+        np.testing.assert_allclose(array_ref, array_test)
+
+    assert kwargs_ref == kwargs_test
 
 
 @pytest.mark.natural_earth
@@ -1045,3 +1072,9 @@ def test_annotate():
                 )
 
     return fig
+
+
+def test_inset_axes():
+    fig, ax = plt.subplots()
+    ax.inset_axes([0.75, 0.75, 0.25, 0.25], projection=ccrs.PlateCarree())
+    fig.draw_without_rendering()

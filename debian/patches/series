@@ -1,4 +1,3 @@
 0001-Skip-tests-failing-on-i386-architectures.patch
 0002-test_robinson.patch
 0003-test_gridliner.patch
-no-network.patch

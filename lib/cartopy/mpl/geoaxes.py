@@ -61,7 +61,6 @@ _BACKG_IMG_CACHE = {}
 # CARTOPY_USER_BACKGROUNDS environment variable.
 _USER_BG_IMGS = {}
 
-
 # XXX call this InterCRSTransform
 class InterProjectionTransform(mtransforms.Transform):
     """
@@ -229,17 +228,15 @@ class _ViewClippedPathPatch(mpatches.PathPatch):
         super().set_transform(self._trans_wrap)
 
     def set_boundary(self, path, transform):
-        self._original_path = path
+        self._original_path = cpatch._ensure_path_closed(path)
         self.set_transform(transform)
         self.stale = True
 
-    # Can remove and use matplotlib's once we support only >= 3.2
-    def set_path(self, path):
-        self._path = path
-
     def _adjust_location(self):
         if self.stale:
-            self.set_path(self._original_path.clip_to_bbox(self.axes.viewLim))
+            self.set_path(
+                cpatch._ensure_path_closed(
+                    self._original_path.clip_to_bbox(self.axes.viewLim)))
             # Some places in matplotlib's transform stack cache the actual
             # path so we trigger an update by invalidating the transform.
             self._trans_wrap.invalidate()
@@ -257,14 +254,16 @@ class GeoSpine(mspines.Spine):
         super().__init__(axes, 'geo', self._original_path, **kwargs)
 
     def set_boundary(self, path, transform):
-        self._original_path = path
+        # Make sure path is closed (required by "Path.clip_to_bbox")
+        self._original_path = cpatch._ensure_path_closed(path)
         self.set_transform(transform)
         self.stale = True
 
     def _adjust_location(self):
         if self.stale:
-            self._path = self._original_path.clip_to_bbox(self.axes.viewLim)
-            self._path = mpath.Path(self._path.vertices, closed=True)
+            self._path = cpatch._ensure_path_closed(
+                self._original_path.clip_to_bbox(self.axes.viewLim)
+                )
 
     def get_window_extent(self, renderer=None):
         # make sure the location is updated so that transforms etc are
@@ -467,7 +466,7 @@ class GeoAxes(matplotlib.axes.Axes):
                                self.get_autoscaley_on())
             yield
 
-    def _draw_preprocess(self, renderer):
+    def _draw_preprocess(self):
         """
         Perform pre-processing steps shared between :func:`GeoAxes.draw`
         and :func:`GeoAxes.get_tightbbox`.
@@ -485,7 +484,7 @@ class GeoAxes(matplotlib.axes.Axes):
         # by `draw` or `get_tightbbox` are positioned and clipped correctly.
         self.patch._adjust_location()
 
-    def get_tightbbox(self, renderer, *args, **kwargs):
+    def get_tightbbox(self, renderer=None, *args, **kwargs):
         """
         Extend the standard behaviour of
         :func:`matplotlib.axes.Axes.get_tightbbox`.
@@ -494,7 +493,7 @@ class GeoAxes(matplotlib.axes.Axes):
         calculating the tight bounding box.
         """
         # Shared processing steps
-        self._draw_preprocess(renderer)
+        self._draw_preprocess()
 
         return super().get_tightbbox(renderer, *args, **kwargs)
 
@@ -507,7 +506,7 @@ class GeoAxes(matplotlib.axes.Axes):
         A global range is used if no limits have yet been set.
         """
         # Shared processing steps
-        self._draw_preprocess(renderer)
+        self._draw_preprocess()
 
         # XXX This interface needs a tidy up:
         #       image drawing on pan/zoom;
@@ -538,8 +537,10 @@ class GeoAxes(matplotlib.axes.Axes):
         # Get the max ymax of all top labels
         top = -1
         for gl in gridliners:
-            if gl.has_labels():
-                # Both top and geo labels can appear at the top of the axes
+            # Both top and geo labels can appear at the top of the axes
+            if gl.top_labels or gl.geo_labels:
+                # Make sure Gridliner is populated and up-to-date
+                gl._draw_gridliner(renderer=renderer)
                 for label in (gl.top_label_artists +
                               gl.geo_label_artists):
                     bb = label.get_tightbbox(renderer)
@@ -580,18 +581,11 @@ class GeoAxes(matplotlib.axes.Axes):
         self.dataLim.intervalx = self.projection.x_limits
         self.dataLim.intervaly = self.projection.y_limits
 
-    if mpl.__version__ >= '3.6':
-        def clear(self):
-            """Clear the current Axes and add boundary lines."""
-            result = super().clear()
-            self.__clear()
-            return result
-    else:
-        def cla(self):
-            """Clear the current Axes and add boundary lines."""
-            result = super().cla()
-            self.__clear()
-            return result
+    def clear(self):
+        """Clear the current Axes and add boundary lines."""
+        result = super().clear()
+        self.__clear()
+        return result
 
     def format_coord(self, x, y):
         """
@@ -1288,6 +1282,11 @@ class GeoAxes(matplotlib.axes.Axes):
 
         if (transform is None or transform == self.transData or
                 same_projection and inside_bounds):
+            if "regrid_shape" in kwargs:
+                warnings.warn("ignoring regrid_shape because it doesn't do anything "
+                              "when working in the same projection. To avoid this "
+                              "warning, remove the 'regrid_shape' keyword argument.")
+                kwargs.pop("regrid_shape")
             result = super().imshow(img, *args, **kwargs)
         else:
             extent = kwargs.pop('extent', None)
@@ -1480,7 +1479,7 @@ class GeoAxes(matplotlib.axes.Axes):
 
         Keyword Parameters
         ------------------
-        **kwargs: dict
+        **kwargs:
             All other keywords control line properties.  These are passed
             through to :class:`matplotlib.collections.Collection`.
 
@@ -1600,8 +1599,8 @@ class GeoAxes(matplotlib.axes.Axes):
         """
         result = super().contour(*args, **kwargs)
 
-        # We need to compute the dataLim correctly for contours.
         if not _MPL_38:
+            # We need to compute the dataLim correctly for contours.
             bboxes = [col.get_datalim(self.transData)
                       for col in result.collections
                       if col.get_paths()]
@@ -1609,7 +1608,12 @@ class GeoAxes(matplotlib.axes.Axes):
                 extent = mtransforms.Bbox.union(bboxes)
                 self.update_datalim(extent.get_points())
         else:
-            self.update_datalim(result.get_datalim(self.transData))
+            # We need to compute the dataLim correctly for contours and set the
+            # artist's sticky edges to match.
+            datalim = result.get_datalim(self.transData)
+            self.update_datalim(datalim)
+            result.sticky_edges.x[:] = datalim.xmin, datalim.xmax
+            result.sticky_edges.y[:] = datalim.ymin, datalim.ymax
 
         self.autoscale_view()
 
@@ -1641,8 +1645,8 @@ class GeoAxes(matplotlib.axes.Axes):
         """
         result = super().contourf(*args, **kwargs)
 
-        # We need to compute the dataLim correctly for contours.
         if not _MPL_38:
+            # We need to compute the dataLim correctly for contours.
             bboxes = [col.get_datalim(self.transData)
                       for col in result.collections
                       if col.get_paths()]
@@ -1650,7 +1654,12 @@ class GeoAxes(matplotlib.axes.Axes):
                 extent = mtransforms.Bbox.union(bboxes)
                 self.update_datalim(extent.get_points())
         else:
-            self.update_datalim(result.get_datalim(self.transData))
+            # We need to compute the dataLim correctly for contours and set the
+            # artist's sticky edges to match.
+            datalim = result.get_datalim(self.transData)
+            self.update_datalim(datalim)
+            result.sticky_edges.x[:] = datalim.xmin, datalim.xmax
+            result.sticky_edges.y[:] = datalim.ymin, datalim.ymax
 
         self.autoscale_view()
 
@@ -1781,8 +1790,8 @@ class GeoAxes(matplotlib.axes.Axes):
         the data coordinates before passing on to Matplotlib.
         """
         default_shading = mpl.rcParams.get('pcolor.shading')
-        if not (kwargs.get('shading', default_shading) in
-                ('nearest', 'auto') and len(args) == 3 and
+        shading = kwargs.get('shading') or default_shading
+        if not (shading in ('nearest', 'auto') and len(args) == 3 and
                 getattr(kwargs.get('transform'), '_wrappable', False)):
             return args, kwargs
 
@@ -1898,7 +1907,7 @@ class GeoAxes(matplotlib.axes.Axes):
                           "It is recommended to remove the wrap manually "
                           "before calling pcolormesh.")
             # With gouraud shading, we actually want an (Ny, Nx) shaped mask
-            gmask = np.zeros(data_shape, dtype=bool)
+            gmask = np.zeros((data_shape[0], data_shape[1]), dtype=bool)
             # If any of the cells were wrapped, apply it to all 4 corners
             gmask[:-1, :-1] |= mask
             gmask[1:, :-1] |= mask
@@ -2293,13 +2302,12 @@ GeoAxesSubplot = matplotlib.axes.subplot_class_factory(GeoAxes)
 GeoAxesSubplot.__module__ = GeoAxes.__module__
 
 
-def _trigger_patch_reclip(event):
+def _trigger_patch_reclip(axes):
     """
     Define an event callback for a GeoAxes which forces the background patch to
     be re-clipped next time it is drawn.
 
     """
-    axes = event.axes
     # trigger the outline and background patches to be re-clipped
     axes.spines['geo'].stale = True
     axes.patch.stale = True
